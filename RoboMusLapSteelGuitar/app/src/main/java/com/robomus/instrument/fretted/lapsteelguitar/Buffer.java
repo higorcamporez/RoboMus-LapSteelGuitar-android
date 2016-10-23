@@ -12,6 +12,7 @@ import android.view.View;
 
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortOut;
+import com.robomus.arduinoCommunication.UsbService;
 import com.robumus.higor.robomuslapsteelguitar.R;
 
 
@@ -38,12 +39,13 @@ public class Buffer extends Thread{
     private InetAddress serverIp;
     private String serverOscAddress;
     private int serverPort;
+    private UsbService usbService;
 
 
-    public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort) {
+    public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort, UsbService usbService) {
         //super(portControl);
         this.messages = new ArrayList<OSCMessage>();
-
+        this.usbService = usbService;
         Log.d("buffer","criouu");
         this.activity =act;
         View v = activity.findViewById(R.id.view);
@@ -143,6 +145,11 @@ public class Buffer extends Thread{
 
             }
         });
+        byte[] b = {1};
+        if(this.usbService != null){
+            this.usbService.write(b);
+        }
+
         //send msg confirm msg
         OSCPortOut sender = null;
         try {

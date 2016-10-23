@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.robomus.arduinoCommunication.UsbService;
 import com.robomus.instrument.fretted.FrettedInstrument;
 import com.robomus.instrument.fretted.InstrumentString;
 
@@ -41,14 +42,14 @@ public class MyRobot extends FrettedInstrument{
     
     public MyRobot(int nFrets, ArrayList<InstrumentString> strings, String name,
                    int polyphony, String serverOscAddress, String OscAddress, InetAddress severAddress,
-                   int sendPort, int receivePort, String typeFamily, String specificProtocol, View view, Activity act) {
+                   int sendPort, int receivePort, String typeFamily, String specificProtocol, UsbService usbService, Activity act) {
 
         super(nFrets, strings, name, polyphony, serverOscAddress, OscAddress, severAddress,
                 sendPort, receivePort, typeFamily, specificProtocol);
         
         //this.portControl = new PortControl("COM8",9600);
         //this.portControl = null;
-        this.buffer = new Buffer(act, severAddress, serverOscAddress, sendPort);
+        this.buffer = new Buffer(act, severAddress, serverOscAddress, sendPort, usbService);
         this.buffer.start();
         Log.d("myrobot","issoa eaeae");
 
