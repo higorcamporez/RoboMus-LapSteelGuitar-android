@@ -97,4 +97,15 @@
         android:layout_alignEnd="@+id/editTextServer"
         android:text="/laplap" />
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Arduino"
+        android:id="@+id/checkBoxArduino"
+        android:layout_below="@+id/textView5"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="33dp"
+        android:checked="false" />
+
 </RelativeLayout>

@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -85,6 +86,7 @@ public class LogActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_log);
         mHandler = new MyHandler(this);
 
@@ -112,35 +114,47 @@ public class LogActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                byte[] data = {1};
-                if (usbService != null) {
-                    Intent it = getIntent();
-                    String ip = it.getStringExtra("ip");
+                Intent it = getIntent();
+                String ip = it.getStringExtra("ip");
 
-                    int port = Integer.parseInt(it.getStringExtra("port"));
-                    String oscServerAdress = it.getStringExtra("server");
-                    String oscInstrumentAdress = it.getStringExtra("instrument");
+                int port = Integer.parseInt(it.getStringExtra("port"));
+                String oscServerAdress = it.getStringExtra("server");
+                String oscInstrumentAdress = it.getStringExtra("instrument");
+                int check = Integer.parseInt(it.getStringExtra("arduino"));
 
-                    ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
-                    l.add(new InstrumentString(0, "A"));
-                    l.add(new InstrumentString(0, "B"));
-                    String specificP = "</slide;posicaoInicial_int><hgyuiyugyu>";
+                ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
+                l.add(new InstrumentString(0, "A"));
+                l.add(new InstrumentString(0, "B"));
+                String specificP = "</slide;posicaoInicial_int><hgyuiyugyu>";
 
-                    View view = findViewById(R.id.view);
-                    MyRobot myRobot = null;
+                MyRobot myRobot = null;
 
+                if(check == 0){
                     try {
-                        myRobot = new MyRobot(12, l, "laplap", 6,oscServerAdress, oscInstrumentAdress+"/*", InetAddress.getByName(ip),
-                                port, 1234, "Fretted", specificP, usbService, a);
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress + "/*", InetAddress.getByName(ip),
+                                port, 1234, "Fretted", specificP, null, a);
                         myRobot.listenThread();
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
-                }else{
+                }else {
 
-                    Toast.makeText(getApplicationContext(),"Conect the arduino first", Toast.LENGTH_SHORT).show();
+
+                    byte[] data = {1};
+                    if (usbService != null) {
+
+                        try {
+                            myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress + "/*", InetAddress.getByName(ip),
+                                    port, 1234, "Fretted", specificP, usbService, a);
+                            myRobot.listenThread();
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+
+                        Toast.makeText(getApplicationContext(), "Conect the arduino first", Toast.LENGTH_SHORT).show();
+                    }
                 }
-
             }
         });
 

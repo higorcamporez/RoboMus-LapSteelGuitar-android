@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -35,9 +37,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
         Button bSend = (Button) findViewById(R.id.button);
-
+        final CheckBox checkArduino = (CheckBox) findViewById(R.id.checkBoxArduino);
 
 
         bSend.setOnClickListener(new View.OnClickListener() {
@@ -51,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
                 it.putExtra("port", etPort.getText().toString());
                 it.putExtra("server", etServer.getText().toString());
                 it.putExtra("instrument", etInstrument.getText().toString());
+                if(checkArduino.isChecked()){
+                    it.putExtra("arduino", "1");
+                }else{
+                    it.putExtra("arduino", "0");
+                }
+
                 startActivity(it);
             }
         });
