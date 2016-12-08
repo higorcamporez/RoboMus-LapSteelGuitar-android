@@ -5,8 +5,6 @@
  */
 package com.robomus.instrument;
 
-import java.net.InetAddress;
-
 /**
  *
  * @author Higor
@@ -15,25 +13,29 @@ public abstract class Instrument {
     
     protected String name; // nome do instrumento   
     protected int polyphony; // quantidade de notas
-    protected String OscAddress; //endereço do OSC do instrumento
+    protected String myOscAddress; //endereço do OSC do instrumento
     protected String serverOscAddress; //endereço do OSC do instrumento
-    protected InetAddress severAddress; // endereco do servidor
+    protected String severIpAddress; // endereco do servidor
     protected int sendPort; // porta para envio msgOSC
     protected int receivePort; // porta pra receber msgOSC
     protected String typeFamily; //tipo do instrumento
     protected String specificProtocol; //procolo especifico do robo
+    protected String myIp;
 
-    public Instrument(String name, int polyphony,String serverOscAddress, String OscAddress, InetAddress severAddress, int sendPort, int receivePort, String typeFamily, String specificProtocol) {
+    public Instrument(String name, int polyphony, String serverOscAddress, String OscAddress,
+                      String severAddress, int sendPort, int receivePort, String typeFamily,
+                      String specificProtocol, String myIp) {
         
         this.name = name;
         this.polyphony = polyphony;
-        this.OscAddress = OscAddress;
-        this.severAddress = severAddress;
+        this.myOscAddress = OscAddress;
+        this.severIpAddress = severAddress;
         this.sendPort = sendPort;
         this.receivePort = receivePort;
         this.typeFamily = typeFamily;
         this.specificProtocol = specificProtocol;
         this.serverOscAddress = serverOscAddress;
+        this.myIp = myIp;
     }
     
     

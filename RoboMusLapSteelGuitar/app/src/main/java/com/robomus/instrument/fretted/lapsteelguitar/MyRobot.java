@@ -6,18 +6,18 @@
 package com.robomus.instrument.fretted.lapsteelguitar;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPortIn;
 import com.illposed.osc.OSCPortOut;
+
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,15 +41,20 @@ public class MyRobot extends FrettedInstrument{
 
     
     public MyRobot(int nFrets, ArrayList<InstrumentString> strings, String name,
-                   int polyphony, String serverOscAddress, String OscAddress, InetAddress severAddress,
-                   int sendPort, int receivePort, String typeFamily, String specificProtocol, UsbService usbService, Activity act) {
+                   int polyphony, String serverOscAddress, String OscAddress, String severAddress,
+                   int sendPort, int receivePort, String typeFamily, String specificProtocol,
+                   UsbService usbService, Activity act, OutputStreamWriter fOut, String myIp) {
 
         super(nFrets, strings, name, polyphony, serverOscAddress, OscAddress, severAddress,
-                sendPort, receivePort, typeFamily, specificProtocol);
+                sendPort, receivePort, typeFamily, specificProtocol, myIp);
         
         //this.portControl = new PortControl("COM8",9600);
         //this.portControl = null;
-        this.buffer = new Buffer(act, severAddress, serverOscAddress, sendPort, usbService);
+        try {
+            this.buffer = new Buffer(act, InetAddress.getByName(severAddress), serverOscAddress, sendPort, usbService, fOut);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
         this.buffer.start();
         Log.d("myrobot","issoa eaeae");
 
@@ -61,11 +66,13 @@ public class MyRobot extends FrettedInstrument{
         
         OSCPortOut sender = null;
         try {
-            sender = new OSCPortOut(this.severAddress , this.sendPort);
+            sender = new OSCPortOut(InetAddress.getByName(this.severIpAddress), this.sendPort);
         } catch (SocketException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
-	
+
         List args = new ArrayList<>();
         
         //instrument attributes
@@ -73,6 +80,9 @@ public class MyRobot extends FrettedInstrument{
         args.add(this.polyphony);
         args.add(this.typeFamily);
         args.add(this.specificProtocol);
+        args.add(this.myOscAddress);
+        args.add(this.myIp);
+        args.add(this.receivePort);
   
         //amount of attributes
         args.add(2);
@@ -81,11 +91,12 @@ public class MyRobot extends FrettedInstrument{
         args.add(convertInstrumentoStringToString()); // strings and turnings
 
       
-	OSCMessage msg = new OSCMessage("/handshake", args);
+	OSCMessage msg = new OSCMessage(this.serverOscAddress+"/handshake/"+this.name, args);
         
              
         try {
             sender.send(msg);
+            Log.i("hand", this.serverOscAddress+"/handshake/seila");
         } catch (IOException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -99,7 +110,7 @@ public class MyRobot extends FrettedInstrument{
         try {
 
             receiver = new OSCPortIn(this.receivePort);
-            System.out.println("Inicio "+ this.receivePort+" ad "+this.OscAddress );
+            System.out.println("Inicio "+ this.receivePort+" ad "+this.myOscAddress);
         } 
         catch (SocketException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
@@ -117,10 +128,10 @@ public class MyRobot extends FrettedInstrument{
                 //verificar se a mensagem é válida
 
                 buffer.add(message);
-                buffer.print();
+                //buffer.print();
             }
         };
-        receiver.addListener(this.OscAddress, listener);
+        receiver.addListener(this.myOscAddress+"/*", listener);
         receiver.startListening(); 
         
     }
@@ -128,9 +139,11 @@ public class MyRobot extends FrettedInstrument{
         
         OSCPortOut sender = null;
         try {
-            sender = new OSCPortOut(this.severAddress , this.sendPort);
+            sender = new OSCPortOut(InetAddress.getByName(this.severIpAddress), this.sendPort);
         } catch (SocketException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
         List args = new ArrayList<>();
         args.add("action completed");

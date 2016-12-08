@@ -1,5 +1,6 @@
 package com.robomus.higor.robomuslapsteelguitar;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -8,14 +9,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.StrictMode;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.text.format.Formatter;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -30,6 +38,11 @@ import com.robomus.instrument.fretted.lapsteelguitar.MyRobot;
 import com.robumus.higor.robomuslapsteelguitar.R;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -41,6 +54,37 @@ import java.util.logging.Logger;
 
 
 public class LogActivity extends AppCompatActivity {
+
+    FileOutputStream fOut = null;
+    OutputStreamWriter myOutWriter =null;
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    /**
+     * Checks if the app has permission to write to device storage
+     *
+     * If the app does not has permission then the user will be prompted to grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -89,6 +133,34 @@ public class LogActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_log);
         mHandler = new MyHandler(this);
+        //search the ip adress
+        WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        int ip = wifiInfo.getIpAddress();
+        final String ipAddress = Formatter.formatIpAddress(ip);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+        StrictMode.setThreadPolicy(policy);
+
+
+        //file txt to debug
+        verifyStoragePermissions(this);
+        File path = new File(Environment.getExternalStorageDirectory() + "/Download");
+        //.getExternalStoragePublicDirectory();
+        File myFile = new File(path, "RoboMus-debug-"+System.currentTimeMillis()+".txt");
+
+        try {
+            fOut = new FileOutputStream(myFile,true);
+            myOutWriter = new OutputStreamWriter(fOut);
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "ng1", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(getApplicationContext(), "ng2", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
 
         //display = (TextView) findViewById(R.id.textView1);
         //editText = (EditText) findViewById(R.id.editText1);
@@ -97,7 +169,7 @@ public class LogActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                    byte[] data = {1};
+                    byte[] data = {0};
                     if (usbService != null) {
                         usbService.write(data);
                         Toast.makeText(getApplicationContext(),"enviou", Toast.LENGTH_SHORT).show();
@@ -125,31 +197,32 @@ public class LogActivity extends AppCompatActivity {
                 ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
                 l.add(new InstrumentString(0, "A"));
                 l.add(new InstrumentString(0, "B"));
-                String specificP = "</slide;posicaoInicial_int><hgyuiyugyu>";
+                String specificP = "</slidee;posicaoInicial_int><hgyuiyugyu>";
+
+
+
 
                 MyRobot myRobot = null;
 
                 if(check == 0){
-                    try {
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress + "/*", InetAddress.getByName(ip),
-                                port, 1234, "Fretted", specificP, null, a);
+
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
+                                port, 1234, "Fretted", specificP, null, a, myOutWriter, ipAddress);
                         myRobot.listenThread();
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    }
+                        myRobot.handshake();
+
                 }else {
 
 
                     byte[] data = {1};
                     if (usbService != null) {
 
-                        try {
-                            myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress + "/*", InetAddress.getByName(ip),
-                                    port, 1234, "Fretted", specificP, usbService, a);
+
+                            myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
+                                    port, 1234, "Fretted", specificP, usbService, a, myOutWriter, ipAddress);
                             myRobot.listenThread();
-                        } catch (UnknownHostException e) {
-                            e.printStackTrace();
-                        }
+                            myRobot.handshake();
+
                     } else {
 
                         Toast.makeText(getApplicationContext(), "Conect the arduino first", Toast.LENGTH_SHORT).show();
@@ -157,7 +230,21 @@ public class LogActivity extends AppCompatActivity {
                 }
             }
         });
+        Button stopButton = (Button) findViewById(R.id.buttonStop);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                try {
+                    myOutWriter.close();
+                    fOut.close();
+                    Toast.makeText(getApplicationContext(), "close file", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
 
 
 
@@ -222,7 +309,7 @@ public class LogActivity extends AppCompatActivity {
             switch (msg.what) {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
-                    mActivity.get().display.append(data);
+                    //mActivity.get().display.append(data);
                     break;
             }
         }

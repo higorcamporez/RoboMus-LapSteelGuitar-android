@@ -15,8 +15,12 @@ import com.illposed.osc.OSCPortOut;
 import com.robomus.arduinoCommunication.UsbService;
 import com.robumus.higor.robomuslapsteelguitar.R;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -28,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author Higor
  */
-public class Buffer extends Thread{
+public class Buffer extends RobotAction{
     
     private List<OSCMessage> messages;
     private long lastServerTime;
@@ -40,10 +44,12 @@ public class Buffer extends Thread{
     private String serverOscAddress;
     private int serverPort;
     private UsbService usbService;
+    private OutputStreamWriter fOut;
 
 
-    public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort, UsbService usbService) {
-        //super(portControl);
+    public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort,
+                  UsbService usbService, OutputStreamWriter fOut) {
+        super(usbService);
         this.messages = new ArrayList<OSCMessage>();
         this.usbService = usbService;
         Log.d("buffer","criouu");
@@ -53,7 +59,26 @@ public class Buffer extends Thread{
         this.serverIp = serverIp;
         this.serverOscAddress = serverOscAddress;
         this.serverPort= serverPort;
-        
+        this.fOut = fOut;
+        try {
+            this.fOut.append("timeSleep timeExe id\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        /*
+        String aux = new String("apenas um teste, pode cre?");
+        try {
+            fOut.write(aux);
+            fOut.close();
+            Log.i("arq", "gravoi");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+
+
+
+
     }
     
     public OSCMessage remove(){
@@ -61,11 +86,11 @@ public class Buffer extends Thread{
     }
     public void add(OSCMessage l){
         //comentario
-        /*if(l.getArguments().get(0).equals("/sincronizar") ){
+        if(l.getArguments().get(0).equals("/synch") ){
             messages.add(0,l);
         }else{
 
-        }*/
+        }
         messages.add(messages.size(), l);
     }
     public void remove(int n){
@@ -81,7 +106,7 @@ public class Buffer extends Thread{
         return null;
     }
     public long relativeTime(){
-        return (this.lastServerTime + ( System.nanoTime() - this.lastInstrumentTime) );
+        return (this.lastServerTime + Math.abs( System.currentTimeMillis() - this.lastInstrumentTime) );
     }
     
     public Long getFirstTimestamp(){
@@ -110,9 +135,11 @@ public class Buffer extends Thread{
     public void synch(OSCMessage oscMessage){
 
         List<Object> args = oscMessage.getArguments();
-        
-        this.lastServerTime = (Long)args.get(0);
-        this.lastInstrumentTime = System.nanoTime();
+
+            this.lastServerTime = (Long)args.get(0);
+            this.lastInstrumentTime = System.currentTimeMillis();
+
+
         remove();
         
     }
@@ -120,11 +147,11 @@ public class Buffer extends Thread{
         List<Object> args = oscMessage.getArguments();
         
         this.lastServerTime = (Long)args.get(0);
-        this.lastInstrumentTime = System.nanoTime();
+        this.lastInstrumentTime = System.currentTimeMillis();
         this.thresold = (int)args.get(1);
         remove();
     }
-    public void blink(OSCMessage msg, long time) {
+    public void blink(OSCMessage msg) {
         final int collor = (int) msg.getArguments().get(1);
         final boolean s = this.viewColor;
         this.activity.runOnUiThread(new Runnable()
@@ -150,20 +177,30 @@ public class Buffer extends Thread{
             this.usbService.write(b);
         }
 
+        try {
+
+            fOut.append(msg.getArguments().get(0).toString()
+                    +" "+System.currentTimeMillis()+" "+msg.getArguments().get(2).toString()+"\n");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //send msg confirm msg
+        /*
         OSCPortOut sender = null;
         try {
 
                 sender = new OSCPortOut(this.serverIp , this.serverPort);
 
                 OSCMessage oscMessage = new OSCMessage(this.serverOscAddress +"/blink/"+"laplap");
-                oscMessage.addArgument(time);
-                oscMessage.addArgument(collor);
+                //oscMessage.addArgument(time);
+                oscMessage.addArgument(msg.getArguments().get(2));
 
 
                 try {
                     sender.send(oscMessage);
-                    Log.e("resp","ip="+this.serverIp+"port="+this.serverPort+"oscAd="+this.serverOscAddress);
+                    Log.e("resp","ip="+this.serverIp+"port="+this.serverPort+"oscAdr="+this.serverOscAddress);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -171,7 +208,10 @@ public class Buffer extends Thread{
 
         } catch (SocketException e) {
             e.printStackTrace();
-        }
+        }*/
+
+        //write in a txt file for debug
+
 
     }
 
@@ -193,37 +233,26 @@ public class Buffer extends Thread{
     
     public void run() {
         
-        long timestamp;
+        int timeSleep;
         String header;
         while(true){
             //System.out.println("nao tem condições");
             if (!this.messages.isEmpty()) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Buffer.class.getName()).log(Level.SEVERE, null, ex);
-                }
+
                 OSCMessage oscMessage = messages.get(0);
-                timestamp = (Long)messages.get(0).getArguments().get(0);
-                long timeNow = relativeTime();
+                Log.i("msg",messages.get(0).getArguments().get(0).toString());
+                timeSleep= (int) messages.get(0).getArguments().get(0);
+
                 header = getHeader(oscMessage);
-                Log.e("buffer", "Header="+header+" timemsg="+timestamp+" RT="+relativeTime());
-                /*
-                    else if(header.equals("blink")){
-                    Log.d("buffer","blink");
-                    blink();
-                    messages.remove(0);
-                }
-                */
+                Log.e("buffer", "Header="+header+" timemsg="+timeSleep);
+
                 if(header.equals("synch")){
                     Log.d("synch","synch");
                     synch(oscMessage);
                 }else if(header.equals("synchStart")){
                      Log.d("synch","synchStart");
                     synchStart(oscMessage);
-                }else if ( timestamp <= timeNow ) {
-                    
-                    System.out.println("entrou");
+                }else{
                     
                     if (header != null) {
                         
@@ -232,7 +261,7 @@ public class Buffer extends Thread{
                         switch (header) {
                             case "blink":
                                 Log.d("action","blink");
-                                blink(oscMessage, timeNow);
+                                blink(oscMessage);
                                 break;
                             case "synchronize":
                                 break;
@@ -242,13 +271,15 @@ public class Buffer extends Thread{
                             case "playNoteFretted":
                                 break;
                             case "playString":
-                                //this.playString(oscMessage);
+                                this.playString(oscMessage);
                                 break;
                             case "slide":
                                 break;
                             case "moveBar":
+                                this.moveBar(oscMessage);
                                 break;
                             case "positionBar":
+                                this.positionBar(oscMessage);
                                 break;
                             case "volumeControl":
                                 break;
@@ -261,8 +292,13 @@ public class Buffer extends Thread{
                             
                                 
                         }
-                        
+                        try {
+                            Thread.sleep(timeSleep);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         remove();
+
                     }
 
                 }

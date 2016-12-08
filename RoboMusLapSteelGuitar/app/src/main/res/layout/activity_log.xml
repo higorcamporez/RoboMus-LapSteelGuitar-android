@@ -30,4 +30,16 @@
         android:layout_toRightOf="@+id/button2"
         android:layout_toEndOf="@+id/button2" />
 
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="STOP"
+        android:id="@+id/buttonStop"
+        android:layout_alignTop="@+id/buttonStart"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/buttonStart"
+        android:layout_toEndOf="@+id/buttonStart" />
+
 </RelativeLayout>
