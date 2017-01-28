@@ -48,5 +48,19 @@ public abstract class RobotAction extends Thread{
         usbService.write(data);
 
     }
+    /*
+    Function to slide bar
+    Format OSC = [timestamp, id, start position, end position ]
+    Message to Arduino:  action Arduino code (00), position, action server id
+    */
+    public void slide(OSCMessage oscMessage) {
+        byte startPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
+        byte endPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
+        byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte[] data = {0, startPosition, endPosition, idArduino, };
+        usbService.write(data);
+
+    }
+
 
 }

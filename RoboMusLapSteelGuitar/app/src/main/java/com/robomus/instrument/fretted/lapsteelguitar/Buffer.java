@@ -274,6 +274,7 @@ public class Buffer extends RobotAction{
                                 this.playString(oscMessage);
                                 break;
                             case "slide":
+                                this.slide(oscMessage);
                                 break;
                             case "moveBar":
                                 this.moveBar(oscMessage);
