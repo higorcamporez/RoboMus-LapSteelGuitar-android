@@ -14,7 +14,11 @@ public abstract class RobotAction extends Thread{
     public RobotAction(UsbService usbService) {
         this.usbService = usbService;
     }
-
+    /*
+    * Method to play a specific string
+    * Format OSC= [timeSleep, id, string]
+    * Message to Arduino:  action Arduino code (30), string, action server id
+    */
     public void playString(OSCMessage oscMessage) {
         Log.i("playString", "Chegou");
         //byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
@@ -24,7 +28,7 @@ public abstract class RobotAction extends Thread{
 
     }
     /*
-    Function to move the bar to a specific position
+    method to move the bar to a specific position
     Format OSC = [timestamp, id, fretPosition]
     Message to Arduino:  action Arduino code (60), fretPosition, action server id
     */
@@ -37,7 +41,7 @@ public abstract class RobotAction extends Thread{
 
     }
     /*
-    Function to move bar up or down
+    method to move bar up or down
     Format OSC = [timestamp, id, position] position = 0 -> down, 1-> up
     Message to Arduino:  action Arduino code (50), position, action server id
     */
@@ -49,7 +53,7 @@ public abstract class RobotAction extends Thread{
 
     }
     /*
-    Function to slide bar
+    method to slide bar
     Format OSC = [timestamp, id, start position, end position ]
     Message to Arduino:  action Arduino code (00), position, action server id
     */

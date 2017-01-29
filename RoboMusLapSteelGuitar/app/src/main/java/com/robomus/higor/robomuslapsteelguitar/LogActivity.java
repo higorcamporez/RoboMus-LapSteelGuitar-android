@@ -181,7 +181,7 @@ public class LogActivity extends AppCompatActivity {
             }
         });
         Button startButton = (Button) findViewById(R.id.buttonStart);
-        final Activity a = this;
+        final Activity thisActivity = this;
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -207,7 +207,7 @@ public class LogActivity extends AppCompatActivity {
                 if(check == 0){
 
                         myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                port, 1234, "Fretted", specificP, null, a, myOutWriter, ipAddress);
+                                port, 1234, "Fretted", specificP, null, thisActivity, myOutWriter, ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
@@ -219,7 +219,7 @@ public class LogActivity extends AppCompatActivity {
 
 
                             myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                    port, 1234, "Fretted", specificP, usbService, a, myOutWriter, ipAddress);
+                                    port, 1234, "Fretted", specificP, usbService, thisActivity, myOutWriter, ipAddress);
                             myRobot.listenThread();
                             myRobot.handshake();
 

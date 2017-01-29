@@ -8,6 +8,7 @@ package com.robomus.instrument.fretted.lapsteelguitar;
 import android.app.Activity;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 
 import com.illposed.osc.OSCMessage;
@@ -25,6 +26,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -215,6 +217,10 @@ public class Buffer extends RobotAction{
 
     }
 
+    /*
+     * pega o cabeçalho da msg
+     * @paran msg osc
+     */
     public String getHeader(OSCMessage oscMessage){
         String header = (String) oscMessage.getAddress();
                     
@@ -230,18 +236,51 @@ public class Buffer extends RobotAction{
         }
         return header;
     }
+    /*
+      * Function to write a message OSC on screep smartphone to debug
+      * @paran oscMessage the message to write on the screen
+     */
+    public void writeMsgLog(final String format , final OSCMessage oscMessage){
+
+        final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
+
+        String txt = "";
+        for(Object arg: oscMessage.getArguments()){
+            txt += arg.toString()+",";
+
+        }
+
+        final StringBuffer sb = new StringBuffer(txt);
+        sb.setCharAt(txt.length()-1, ']');
+        this.activity.runOnUiThread(new Runnable()
+        {
+
+            @Override
+            public void run() {
+
+                txtLog.append("\n"+format+"\n");
+                txtLog.append("Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
+            }
+        });
+
+
+    }
+
+
     
     public void run() {
         
-        int timeSleep;
+        long timeSleep;
         String header;
+        final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
+
         while(true){
             //System.out.println("nao tem condições");
             if (!this.messages.isEmpty()) {
 
-                OSCMessage oscMessage = messages.get(0);
+                final OSCMessage oscMessage = messages.get(0);
                 Log.i("msg",messages.get(0).getArguments().get(0).toString());
-                timeSleep= (int) messages.get(0).getArguments().get(0);
+                timeSleep= (long) messages.get(0).getArguments().get(0);
 
                 header = getHeader(oscMessage);
                 Log.e("buffer", "Header="+header+" timemsg="+timeSleep);
@@ -261,7 +300,10 @@ public class Buffer extends RobotAction{
                         switch (header) {
                             case "blink":
                                 Log.d("action","blink");
+
+
                                 blink(oscMessage);
+                                this.writeMsgLog("Blink: Format = [timeSleep, collor]",oscMessage);
                                 break;
                             case "synchronize":
                                 break;
@@ -272,15 +314,19 @@ public class Buffer extends RobotAction{
                                 break;
                             case "playString":
                                 this.playString(oscMessage);
+                                this.writeMsgLog("playString: Format = [timeSleep, id, string]",oscMessage);
                                 break;
                             case "slide":
                                 this.slide(oscMessage);
+                                this.writeMsgLog("slide: Format = [timestamp, id, start position, end position]",oscMessage);
                                 break;
                             case "moveBar":
                                 this.moveBar(oscMessage);
+                                this.writeMsgLog("moveBar: Format = [timestamp, id, position] (0->down, 1->up)",oscMessage);
                                 break;
                             case "positionBar":
                                 this.positionBar(oscMessage);
+                                this.writeMsgLog("positionBar: Format OSC = [timestamp, id, fretPosition]",oscMessage);
                                 break;
                             case "volumeControl":
                                 break;

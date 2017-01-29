@@ -7,6 +7,7 @@ package com.robomus.instrument.fretted.lapsteelguitar;
 
 import android.app.Activity;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
@@ -18,7 +19,10 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +30,7 @@ import java.util.logging.Logger;
 import com.robomus.arduinoCommunication.UsbService;
 import com.robomus.instrument.fretted.FrettedInstrument;
 import com.robomus.instrument.fretted.InstrumentString;
+import com.robumus.higor.robomuslapsteelguitar.R;
 
 
 /**
@@ -36,6 +41,7 @@ public class MyRobot extends FrettedInstrument{
     
     private volatile Buffer buffer;
     //private PortControl portControl;
+
 
 
 
@@ -50,12 +56,23 @@ public class MyRobot extends FrettedInstrument{
         
         //this.portControl = new PortControl("COM8",9600);
         //this.portControl = null;
+        TextView txtLog = (TextView) act.findViewById(R.id.textViewLog);
+
+        //imprimir inicio do log com data e hora
+        DateFormat df = new SimpleDateFormat("dd MM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+
+        txtLog.append("---- ROBOMUS LOG "+ date+ " ----\n");
+
+        //fim imprimir log
+
         try {
             this.buffer = new Buffer(act, InetAddress.getByName(severAddress), serverOscAddress, sendPort, usbService, fOut);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
         this.buffer.start();
+
         Log.d("myrobot","issoa eaeae");
 
         
