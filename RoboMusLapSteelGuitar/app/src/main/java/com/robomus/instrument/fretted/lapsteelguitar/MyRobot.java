@@ -49,7 +49,7 @@ public class MyRobot extends FrettedInstrument{
     public MyRobot(int nFrets, ArrayList<InstrumentString> strings, String name,
                    int polyphony, String serverOscAddress, String OscAddress, String severAddress,
                    int sendPort, int receivePort, String typeFamily, String specificProtocol,
-                   UsbService usbService, Activity act, OutputStreamWriter fOut, String myIp) {
+                   UsbService usbService, Activity act, OutputStreamWriter fOut, OutputStreamWriter fOutLog, String myIp) {
 
         super(nFrets, strings, name, polyphony, serverOscAddress, OscAddress, severAddress,
                 sendPort, receivePort, typeFamily, specificProtocol, myIp);
@@ -67,7 +67,7 @@ public class MyRobot extends FrettedInstrument{
         //fim imprimir log
 
         try {
-            this.buffer = new Buffer(act, InetAddress.getByName(severAddress), serverOscAddress, sendPort, usbService, fOut);
+            this.buffer = new Buffer(act, InetAddress.getByName(severAddress), serverOscAddress, sendPort, usbService, fOut, fOutLog);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }

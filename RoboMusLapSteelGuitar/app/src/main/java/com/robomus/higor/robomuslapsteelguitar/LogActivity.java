@@ -23,7 +23,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.text.format.Formatter;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -44,19 +43,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 
 public class LogActivity extends AppCompatActivity {
 
-    FileOutputStream fOut = null;
-    OutputStreamWriter myOutWriter =null;
+    FileOutputStream fOutLogBlink = null;
+    FileOutputStream fOutLog = null;
+    OutputStreamWriter myOutWriterLog =null;
+    OutputStreamWriter myOutWriterLogBlink =null;
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -146,13 +142,14 @@ public class LogActivity extends AppCompatActivity {
         //file txt to debug
         verifyStoragePermissions(this);
         File path = new File(Environment.getExternalStorageDirectory() + "/Download");
-        //.getExternalStoragePublicDirectory();
-        File myFile = new File(path, "RoboMus-debug-"+System.currentTimeMillis()+".txt");
+        File myFile = new File(path, "RoboMus-debug-blink-"+System.currentTimeMillis()+".txt");
+        File myFileLog = new File(path, "RoboMus-debug-log"+System.currentTimeMillis()+".txt");
 
         try {
-            fOut = new FileOutputStream(myFile,true);
-            myOutWriter = new OutputStreamWriter(fOut);
-
+            fOutLogBlink = new FileOutputStream(myFile,true);
+            fOutLog = new FileOutputStream(myFileLog,true);
+            myOutWriterLogBlink = new OutputStreamWriter(fOutLogBlink);
+            myOutWriterLog = new OutputStreamWriter(fOutLog);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -207,7 +204,7 @@ public class LogActivity extends AppCompatActivity {
                 if(check == 0){
 
                         myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                port, 1234, "Fretted", specificP, null, thisActivity, myOutWriter, ipAddress);
+                                port, 1234, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
@@ -219,7 +216,7 @@ public class LogActivity extends AppCompatActivity {
 
 
                             myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                    port, 1234, "Fretted", specificP, usbService, thisActivity, myOutWriter, ipAddress);
+                                    port, 1234, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
                             myRobot.listenThread();
                             myRobot.handshake();
 
@@ -236,8 +233,12 @@ public class LogActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 try {
-                    myOutWriter.close();
-                    fOut.close();
+                    myOutWriterLogBlink.close();
+                    fOutLogBlink.close();
+
+                    myOutWriterLog.close();
+                    fOutLog.close();
+
                     Toast.makeText(getApplicationContext(), "close file", Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     e.printStackTrace();

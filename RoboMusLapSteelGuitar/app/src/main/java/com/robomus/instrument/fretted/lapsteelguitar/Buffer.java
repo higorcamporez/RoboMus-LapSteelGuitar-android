@@ -47,21 +47,25 @@ public class Buffer extends RobotAction{
     private int serverPort;
     private UsbService usbService;
     private OutputStreamWriter fOut;
+    private OutputStreamWriter fOutLog;
 
 
     public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort,
-                  UsbService usbService, OutputStreamWriter fOut) {
+                  UsbService usbService, OutputStreamWriter fOut, OutputStreamWriter fOutLog) {
         super(usbService);
         this.messages = new ArrayList<OSCMessage>();
         this.usbService = usbService;
         Log.d("buffer","criouu");
-        this.activity =act;
+        this.activity = act;
         View v = activity.findViewById(R.id.view);
         v.setBackgroundColor(0xFFcc0000);
+
         this.serverIp = serverIp;
         this.serverOscAddress = serverOscAddress;
         this.serverPort= serverPort;
+
         this.fOut = fOut;
+        this.fOutLog = fOutLog;
         try {
             this.fOut.append("timeSleep timeExe id\n");
         } catch (IOException e) {
@@ -237,7 +241,8 @@ public class Buffer extends RobotAction{
         return header;
     }
     /*
-      * Function to write a message OSC on screep smartphone to debug
+      * Method to write a message OSC on screep smartphone to debug
+      * @paran format represents the msg format
       * @paran oscMessage the message to write on the screen
      */
     public void writeMsgLog(final String format , final OSCMessage oscMessage){
@@ -252,14 +257,25 @@ public class Buffer extends RobotAction{
 
         final StringBuffer sb = new StringBuffer(txt);
         sb.setCharAt(txt.length()-1, ']');
+        //saving in a file log
+        try {
+            this.fOutLog.append("\n"+format+"\n Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.activity.runOnUiThread(new Runnable()
         {
 
             @Override
             public void run() {
+                if(txtLog.getText().length() > 2000){
+                    txtLog.setText("\n"+format+"\n");
+                    txtLog.setText("Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
+                }else{
+                    txtLog.append("\n"+format+"\n");
+                    txtLog.append("Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
+                }
 
-                txtLog.append("\n"+format+"\n");
-                txtLog.append("Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
             }
         });
 
@@ -267,7 +283,6 @@ public class Buffer extends RobotAction{
     }
 
 
-    
     public void run() {
         
         long timeSleep;
@@ -300,8 +315,6 @@ public class Buffer extends RobotAction{
                         switch (header) {
                             case "blink":
                                 Log.d("action","blink");
-
-
                                 blink(oscMessage);
                                 this.writeMsgLog("Blink: Format = [timeSleep, collor]",oscMessage);
                                 break;
@@ -336,8 +349,6 @@ public class Buffer extends RobotAction{
                                 break;
                             case "stop":
                                 break;
-                            
-                                
                         }
                         try {
                             Thread.sleep(timeSleep);
