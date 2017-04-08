@@ -349,6 +349,10 @@ public class Buffer extends RobotAction{
                                 break;
                             case "stop":
                                 break;
+                            case "playNoteTest":
+                                this.playNoteTest(oscMessage);
+                                this.writeMsgLog("playNoteTest: Format OSC = [fret, string]",oscMessage);
+                                break;
                         }
                         try {
                             Thread.sleep(timeSleep);

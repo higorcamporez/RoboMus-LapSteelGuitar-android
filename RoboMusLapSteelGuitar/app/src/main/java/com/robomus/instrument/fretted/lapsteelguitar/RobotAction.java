@@ -13,6 +13,7 @@ public abstract class RobotAction extends Thread{
 
     public RobotAction(UsbService usbService) {
         this.usbService = usbService;
+
     }
     /*
     * Method to play a specific string
@@ -67,4 +68,10 @@ public abstract class RobotAction extends Thread{
     }
 
 
+    public void playNoteTest(OSCMessage oscMessage) {
+        byte fretNumber = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte stringNumber = Byte.parseByte(oscMessage.getArguments().get(2).toString());
+        byte[] data = {100, fretNumber, stringNumber};
+        usbService.write(data);
+    }
 }

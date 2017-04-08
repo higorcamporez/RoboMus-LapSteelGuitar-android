@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.text.format.Formatter;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -298,7 +299,7 @@ public class LogActivity extends AppCompatActivity {
     /*
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
-    private static class MyHandler extends Handler {
+    private class MyHandler extends Handler {
         private final WeakReference<LogActivity> mActivity;
 
         public MyHandler(LogActivity activity) {
@@ -309,8 +310,21 @@ public class LogActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
-                    String data = (String) msg.obj;
-                    //mActivity.get().display.append(data);
+
+                       // msg.getData();
+                    if(msg == null) {
+                        Log.i("teste velocidade", "null-patrao");
+                    }else{
+                        String data = (String) msg.obj;
+                        Log.i("tempo", "Tempo "+data);
+                        TextView txtLog = (TextView) mActivity.get().findViewById(R.id.textViewLog);
+                        txtLog.append(data);
+                    }
+
+
+                    //Toast.makeText(mActivity.get().getApplicationContext(), data, Toast.LENGTH_SHORT).show();
+
+                    //mActivity.get().editText.append(data);
                     break;
             }
         }
