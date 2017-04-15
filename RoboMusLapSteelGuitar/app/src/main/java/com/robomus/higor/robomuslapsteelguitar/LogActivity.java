@@ -50,11 +50,15 @@ import java.util.Set;
 
 public class LogActivity extends AppCompatActivity {
 
-    FileOutputStream fOutLogBlink = null;
-    FileOutputStream fOutLog = null;
-    OutputStreamWriter myOutWriterLog =null;
-    OutputStreamWriter myOutWriterLogBlink =null;
-
+    private FileOutputStream fOutLogBlink = null;
+    private FileOutputStream fOutLog = null;
+    private OutputStreamWriter myOutWriterLog =null;
+    private OutputStreamWriter myOutWriterLogBlink =null;
+    private UsbService usbService;
+    private TextView display;
+    private EditText editText;
+    private MyHandler mHandler;
+    public MyRobot myRobot = null;
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -105,10 +109,7 @@ public class LogActivity extends AppCompatActivity {
             }
         }
     };
-    private UsbService usbService;
-    private TextView display;
-    private EditText editText;
-    private MyHandler mHandler;
+
 
     private final ServiceConnection usbConnection = new ServiceConnection() {
         @Override
@@ -199,9 +200,6 @@ public class LogActivity extends AppCompatActivity {
 
 
 
-
-                MyRobot myRobot = null;
-
                 if(check == 0){
 
                         myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
@@ -216,10 +214,10 @@ public class LogActivity extends AppCompatActivity {
                     if (usbService != null) {
 
 
-                            myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
                                     port, 1234, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
-                            myRobot.listenThread();
-                            myRobot.handshake();
+                        myRobot.listenThread();
+                        myRobot.handshake();
 
                     } else {
 
@@ -316,9 +314,19 @@ public class LogActivity extends AppCompatActivity {
                         Log.i("teste velocidade", "null-patrao");
                     }else{
                         String data = (String) msg.obj;
-                        Log.i("tempo", "Tempo "+data);
-                        TextView txtLog = (TextView) mActivity.get().findViewById(R.id.textViewLog);
-                        txtLog.append(data);
+                        if(!data.isEmpty()) {
+                            //receive a message from arduino
+
+                            byte dataBytes[] = data.getBytes();
+                            for(byte b: dataBytes){
+                                this.mActivity.get().myRobot.sendConfirmActionMessage(b);
+                                Log.i("tempo", "Tempo b=" + b);
+                            }
+
+                            //Log.i("tempo", "Tempo s=" + data + " b=" + dataB[0]+dataB[1]+dataB[2]) ;
+                            //TextView txtLog = (TextView) mActivity.get().findViewById(R.id.textViewLog);
+                            //txtLog.append(data);
+                        }
                     }
 
 

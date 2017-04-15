@@ -35,8 +35,9 @@ import java.util.logging.Logger;
  * @author Higor
  */
 public class Buffer extends RobotAction{
-    
+
     private List<OSCMessage> messages;
+    private List<Integer> idProcessedMsg;
     private long lastServerTime;
     private long lastInstrumentTime;
     private int thresold = 100;
@@ -53,7 +54,9 @@ public class Buffer extends RobotAction{
     public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort,
                   UsbService usbService, OutputStreamWriter fOut, OutputStreamWriter fOutLog) {
         super(usbService);
+
         this.messages = new ArrayList<OSCMessage>();
+        this.idProcessedMsg = new ArrayList<Integer>();
         this.usbService = usbService;
         Log.d("buffer","criouu");
         this.activity = act;
@@ -86,7 +89,27 @@ public class Buffer extends RobotAction{
 
 
     }
-    
+    /*
+      * Method to get the original message id from the server. The msg from server is converted to a unique byte.
+      * Example: server msg id 7500 -> 7500%256 = 76 (id to send to arduino)
+      * @paran format represents the msg format
+     */
+    public int getIdConfirmMessage(int idFromArduino){
+        imprimirId();
+
+        for (Integer id: this.idProcessedMsg) {
+            if( (id%256) == idFromArduino ){
+                this.idProcessedMsg.remove(id);
+                return id;
+            }
+        }
+        return -1;
+    }
+    public void imprimirId(){
+        for (Integer id: this.idProcessedMsg) {
+            Log.i("vetorId = ",id.toString());
+        }
+    }
     public OSCMessage remove(){
         return messages.remove(0);
     }
@@ -240,6 +263,7 @@ public class Buffer extends RobotAction{
         }
         return header;
     }
+
     /*
       * Method to write a message OSC on screep smartphone to debug
       * @paran format represents the msg format
@@ -283,6 +307,7 @@ public class Buffer extends RobotAction{
     }
 
 
+
     public void run() {
         
         long timeSleep;
@@ -290,10 +315,13 @@ public class Buffer extends RobotAction{
         final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
 
         while(true){
-            //System.out.println("nao tem condições");
+
             if (!this.messages.isEmpty()) {
 
                 final OSCMessage oscMessage = messages.get(0);
+                //add the msg id in a list
+                this.idProcessedMsg.add((int) oscMessage.getArguments().get(1));
+
                 Log.i("msg",messages.get(0).getArguments().get(0).toString());
                 timeSleep= (long) messages.get(0).getArguments().get(0);
 
@@ -352,6 +380,10 @@ public class Buffer extends RobotAction{
                             case "playNoteTest":
                                 this.playNoteTest(oscMessage);
                                 this.writeMsgLog("playNoteTest: Format OSC = [fret, string]",oscMessage);
+                                break;
+                            case "testeMsg":
+                                this.testMsg(oscMessage);
+                                this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
                                 break;
                         }
                         try {

@@ -40,11 +40,9 @@ import com.robumus.higor.robomuslapsteelguitar.R;
 public class MyRobot extends FrettedInstrument{
     
     private volatile Buffer buffer;
+    OSCPortOut sender;
+    OSCPortIn receiver;
     //private PortControl portControl;
-
-
-
-
     
     public MyRobot(int nFrets, ArrayList<InstrumentString> strings, String name,
                    int polyphony, String serverOscAddress, String OscAddress, String severAddress,
@@ -75,20 +73,29 @@ public class MyRobot extends FrettedInstrument{
 
         Log.d("myrobot","issoa eaeae");
 
-        
-    }
-   
-    public void handshake(){
-     
-        
-        OSCPortOut sender = null;
+        //Initializing the OSC sender
+        this.sender = null;
         try {
-            sender = new OSCPortOut(InetAddress.getByName(this.severIpAddress), this.sendPort);
+            this.sender = new OSCPortOut(InetAddress.getByName(this.severIpAddress), this.sendPort);
         } catch (SocketException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        //Initializing the OSC Receiver
+        this.receiver = null;
+
+        try {
+
+            this.receiver = new OSCPortIn(this.receivePort);
+        }
+        catch (SocketException ex) {
+            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+    }
+   
+    public void handshake(){
 
         List args = new ArrayList<>();
         
@@ -112,7 +119,7 @@ public class MyRobot extends FrettedInstrument{
         
              
         try {
-            sender.send(msg);
+            this.sender.send(msg);
             Log.i("hand", this.serverOscAddress+"/handshake/seila");
         } catch (IOException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
@@ -121,19 +128,8 @@ public class MyRobot extends FrettedInstrument{
     }
     
     public void listenThread(){
-        
-        OSCPortIn receiver = null;            
+        System.out.println("Inicio "+ this.receivePort+" ad "+this.myOscAddress);
 
-        try {
-
-            receiver = new OSCPortIn(this.receivePort);
-            System.out.println("Inicio "+ this.receivePort+" ad "+this.myOscAddress);
-        } 
-        catch (SocketException ex) {
-            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
-            
-        }
-         
         OSCListener listener = new OSCListener() {
             
             public void acceptMessage(java.util.Date time, OSCMessage message) {
@@ -148,34 +144,43 @@ public class MyRobot extends FrettedInstrument{
                 //buffer.print();
             }
         };
-        receiver.addListener(this.myOscAddress+"/*", listener);
-        receiver.startListening(); 
+        this.receiver.addListener(this.myOscAddress+"/*", listener);
+        this.receiver.startListening();
         
     }
     public void ConfirmMsgToServ(){
-        
-        OSCPortOut sender = null;
-        try {
-            sender = new OSCPortOut(InetAddress.getByName(this.severIpAddress), this.sendPort);
-        } catch (SocketException ex) {
-            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+
         List args = new ArrayList<>();
         args.add("action completed");
         
         OSCMessage msg = new OSCMessage("/handshake", args);
              
         try {
-            sender.send(msg);
+            this.sender.send(msg);
         } catch (IOException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
    
-  
+    public void sendConfirmActionMessage( int idFromArduino){
+        int idConveted = this.buffer.getIdConfirmMessage(idFromArduino);
+        Byte b;
+
+        Log.i("teste", "idConv="+idConveted);
+        if(idConveted != -1){
+            OSCMessage msg = new OSCMessage("/action");
+            msg.addArgument(idConveted);
+
+            try {
+                this.sender.send(msg);
+            } catch (IOException ex) {
+                Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+
+    }
        /*
     public void msgToArduino(){
     byte[] TstArray= new byte[1];

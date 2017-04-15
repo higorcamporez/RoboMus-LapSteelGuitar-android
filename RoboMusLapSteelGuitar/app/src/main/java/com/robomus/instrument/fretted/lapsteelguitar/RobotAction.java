@@ -22,9 +22,9 @@ public abstract class RobotAction extends Thread{
     */
     public void playString(OSCMessage oscMessage) {
         Log.i("playString", "Chegou");
-        //byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
         byte string = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte[] data = {30, string, 100};
+        byte[] data = {30, string, idArduino};
         usbService.write(data);
 
     }
@@ -35,7 +35,7 @@ public abstract class RobotAction extends Thread{
     */
     public void positionBar(OSCMessage oscMessage) {
         byte fret = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
         byte[] data = {60, fret, idArduino};
         usbService.write(data);
         Log.i("action","position bar, fret="+fret);
@@ -48,7 +48,7 @@ public abstract class RobotAction extends Thread{
     */
     public void moveBar(OSCMessage oscMessage) {
         byte posicao = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
         byte[] data = {50, posicao, idArduino};
         usbService.write(data);
 
@@ -61,17 +61,30 @@ public abstract class RobotAction extends Thread{
     public void slide(OSCMessage oscMessage) {
         byte startPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
         byte endPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        //byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
+        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
         byte[] data = {0, startPosition, endPosition, idArduino, };
         usbService.write(data);
 
     }
 
-
+    /* ---------------------- test -----------*/
+    public void testMsg(OSCMessage oscMessage){
+        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
+        byte[] data = {100, idArduino };
+        usbService.write(data);
+    }
     public void playNoteTest(OSCMessage oscMessage) {
         byte fretNumber = Byte.parseByte(oscMessage.getArguments().get(1).toString());
         byte stringNumber = Byte.parseByte(oscMessage.getArguments().get(2).toString());
         byte[] data = {100, fretNumber, stringNumber};
         usbService.write(data);
+    }
+    /*
+    * method to convert the id from server to send to arduino
+    * @paran idFromServer the message id received from the server
+    */
+    public Byte convertId( int idFromServer){
+        return (byte)(idFromServer%256);
     }
 }
