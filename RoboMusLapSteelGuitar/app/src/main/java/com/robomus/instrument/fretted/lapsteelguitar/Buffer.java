@@ -51,8 +51,8 @@ public class Buffer extends RobotAction{
     private OutputStreamWriter fOutLog;
 
 
-    public Buffer(Activity act, InetAddress serverIp, String serverOscAddress, int serverPort,
-                  UsbService usbService, OutputStreamWriter fOut, OutputStreamWriter fOutLog) {
+    public Buffer(Activity act, UsbService usbService, OutputStreamWriter fOut,
+                  OutputStreamWriter fOutLog) {
         super(usbService);
 
         this.messages = new ArrayList<OSCMessage>();
@@ -63,9 +63,6 @@ public class Buffer extends RobotAction{
         View v = activity.findViewById(R.id.view);
         v.setBackgroundColor(0xFFcc0000);
 
-        this.serverIp = serverIp;
-        this.serverOscAddress = serverOscAddress;
-        this.serverPort= serverPort;
 
         this.fOut = fOut;
         this.fOutLog = fOutLog;
@@ -74,21 +71,35 @@ public class Buffer extends RobotAction{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*
-        String aux = new String("apenas um teste, pode cre?");
-        try {
-            fOut.write(aux);
-            fOut.close();
-            Log.i("arq", "gravoi");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-
-
 
 
 
     }
+
+    public int getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+    public InetAddress getServerIp() {
+        return serverIp;
+    }
+
+    public void setServerIp(InetAddress serverIp) {
+        this.serverIp = serverIp;
+    }
+
+    public String getServerOscAddress() {
+        return serverOscAddress;
+    }
+
+    public void setServerOscAddress(String serverOscAddress) {
+        this.serverOscAddress = serverOscAddress;
+    }
+
     /*
       * Method to get the original message id from the server. The msg from server is converted to a unique byte.
       * Example: server msg id 7500 -> 7500%256 = 76 (id to send to arduino)
@@ -98,7 +109,8 @@ public class Buffer extends RobotAction{
         imprimirId();
 
         for (Integer id: this.idProcessedMsg) {
-            if( (id%256) == idFromArduino ){
+            Log.i("comparador", Integer.toString(id%128) +" - ardId= "+ idFromArduino );
+            if( (id%128) == idFromArduino ){
                 this.idProcessedMsg.remove(id);
                 return id;
             }
@@ -113,6 +125,7 @@ public class Buffer extends RobotAction{
     public OSCMessage remove(){
         return messages.remove(0);
     }
+
     public void add(OSCMessage l){
         //comentario
         if(l.getArguments().get(0).equals("/synch") ){
@@ -122,6 +135,7 @@ public class Buffer extends RobotAction{
         }
         messages.add(messages.size(), l);
     }
+
     public void remove(int n){
         for (int i = 0; i < n; i++) {
             messages.remove(i);
@@ -310,7 +324,7 @@ public class Buffer extends RobotAction{
 
     public void run() {
         
-        long timeSleep;
+        Long timeSleep = (long)0;
         String header;
         final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
 
@@ -323,7 +337,7 @@ public class Buffer extends RobotAction{
                 this.idProcessedMsg.add((int) oscMessage.getArguments().get(1));
 
                 Log.i("msg",messages.get(0).getArguments().get(0).toString());
-                timeSleep= (long) messages.get(0).getArguments().get(0);
+                timeSleep= Long.parseLong(messages.get(0).getArguments().get(0).toString());
 
                 header = getHeader(oscMessage);
                 Log.e("buffer", "Header="+header+" timemsg="+timeSleep);
@@ -383,6 +397,14 @@ public class Buffer extends RobotAction{
                                 break;
                             case "testeMsg":
                                 this.testMsg(oscMessage);
+                                this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
+                                break;
+                            case "handshake":
+                                //this.testMsg(oscMessage);
+                                this.writeMsgLog("handshake: Format OSC = [oscAdd, ip, port]",oscMessage);
+                                break;
+                            case "playSound":
+                                this.playSound(oscMessage);
                                 this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
                                 break;
                         }

@@ -46,13 +46,9 @@ public class MainActivity extends AppCompatActivity {
         bSend.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent it = new Intent(MainActivity.this, LogActivity.class);
-                EditText etIp = (EditText) findViewById(R.id.editTextIp);
                 EditText etPort = (EditText) findViewById(R.id.editTextPort);
-                EditText etServer = (EditText) findViewById(R.id.editTextServer);
                 EditText etInstrument = (EditText) findViewById(R.id.editTextInstrument);
-                it.putExtra("ip",etIp.getText().toString());
                 it.putExtra("port", etPort.getText().toString());
-                it.putExtra("server", etServer.getText().toString());
                 it.putExtra("instrument", etInstrument.getText().toString());
                 if(checkArduino.isChecked()){
                     it.putExtra("arduino", "1");

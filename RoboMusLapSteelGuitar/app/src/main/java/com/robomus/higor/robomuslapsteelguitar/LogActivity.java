@@ -186,24 +186,21 @@ public class LogActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 Intent it = getIntent();
-                String ip = it.getStringExtra("ip");
 
                 int port = Integer.parseInt(it.getStringExtra("port"));
-                String oscServerAdress = it.getStringExtra("server");
+
                 String oscInstrumentAdress = it.getStringExtra("instrument");
                 int check = Integer.parseInt(it.getStringExtra("arduino"));
 
                 ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
                 l.add(new InstrumentString(0, "A"));
                 l.add(new InstrumentString(0, "B"));
-                String specificP = "</slidee;posicaoInicial_int><hgyuiyugyu>";
-
+                String specificP = "</playSound;frequency_i;durationSeg_i>";
 
 
                 if(check == 0){
 
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                port, 1234, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress , port, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
@@ -214,8 +211,7 @@ public class LogActivity extends AppCompatActivity {
                     if (usbService != null) {
 
 
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscServerAdress, oscInstrumentAdress , ip,
-                                    port, 1234, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress , port, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
@@ -314,18 +310,23 @@ public class LogActivity extends AppCompatActivity {
                         Log.i("teste velocidade", "null-patrao");
                     }else{
                         String data = (String) msg.obj;
+
                         if(!data.isEmpty()) {
                             //receive a message from arduino
-
+                            Log.i("tempo", "string=" + (data));
                             byte dataBytes[] = data.getBytes();
                             for(byte b: dataBytes){
-                                this.mActivity.get().myRobot.sendConfirmActionMessage(b);
-                                Log.i("tempo", "Tempo b=" + b);
+                                //b & 0xFF convert to unsigned byte
+                                this.mActivity.get().myRobot.sendConfirmActionMessage(b&0xFF);
+                                Log.i("tempo", "Tempo b=" + (b&0xFF));
                             }
 
-                            //Log.i("tempo", "Tempo s=" + data + " b=" + dataB[0]+dataB[1]+dataB[2]) ;
-                            //TextView txtLog = (TextView) mActivity.get().findViewById(R.id.textViewLog);
-                            //txtLog.append(data);
+                            /*
+                            //teste de tempo
+                             //Log.i("tempo", "Tempo s=" + data + " b=" + dataB[0]+dataB[1]+dataB[2]) ;
+                             TextView txtLog = (TextView) mActivity.get().findViewById(R.id.textViewLog);
+                             txtLog.append(data);
+                             */
                         }
                     }
 

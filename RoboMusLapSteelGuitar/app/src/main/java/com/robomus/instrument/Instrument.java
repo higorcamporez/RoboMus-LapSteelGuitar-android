@@ -22,19 +22,16 @@ public abstract class Instrument {
     protected String specificProtocol; //procolo especifico do robo
     protected String myIp;
 
-    public Instrument(String name, int polyphony, String serverOscAddress, String OscAddress,
-                      String severAddress, int sendPort, int receivePort, String typeFamily,
+    public Instrument(String name, int polyphony, String OscAddress,
+                      int receivePort, String typeFamily,
                       String specificProtocol, String myIp) {
         
         this.name = name;
         this.polyphony = polyphony;
         this.myOscAddress = OscAddress;
-        this.severIpAddress = severAddress;
-        this.sendPort = sendPort;
         this.receivePort = receivePort;
         this.typeFamily = typeFamily;
         this.specificProtocol = specificProtocol;
-        this.serverOscAddress = serverOscAddress;
         this.myIp = myIp;
     }
     
