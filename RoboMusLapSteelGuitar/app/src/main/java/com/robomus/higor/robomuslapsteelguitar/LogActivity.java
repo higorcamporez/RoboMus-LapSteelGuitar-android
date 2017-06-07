@@ -179,47 +179,59 @@ public class LogActivity extends AppCompatActivity {
 
             }
         });
-        Button startButton = (Button) findViewById(R.id.buttonStart);
+        final Button startButton = (Button) findViewById(R.id.buttonStart);
         final Activity thisActivity = this;
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Intent it = getIntent();
-
-                int port = Integer.parseInt(it.getStringExtra("port"));
-
-                String oscInstrumentAdress = it.getStringExtra("instrument");
-                int check = Integer.parseInt(it.getStringExtra("arduino"));
-
-                ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
-                l.add(new InstrumentString(0, "A"));
-                l.add(new InstrumentString(0, "B"));
-                String specificP = "</playSound;frequency_i;durationSeg_i>";
-
-
-                if(check == 0){
-
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress , port, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
-                        myRobot.listenThread();
-                        myRobot.handshake();
-
+                if(startButton.getText().equals("Stop Robot")){
+                    Log.i("stop","instrument disconnected");
+                    if(myRobot != null){
+                        myRobot.disconnect();
+                        myRobot = null;
+                        startButton.setText("Start Robot");
+                    }
                 }else {
+                    Intent it = getIntent();
+
+                    int port = Integer.parseInt(it.getStringExtra("port"));
+
+                    String oscInstrumentAdress = it.getStringExtra("instrument");
+                    int check = Integer.parseInt(it.getStringExtra("arduino"));
+
+                    ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
+                    l.add(new InstrumentString(0, "A"));
+                    l.add(new InstrumentString(0, "B"));
+                    String specificP = "</playSound;frequency_i;durationSeg_i>";
 
 
-                    byte[] data = {1};
-                    if (usbService != null) {
+                    if (check == 0) {
 
-
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress , port, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress, port, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
                     } else {
 
-                        Toast.makeText(getApplicationContext(), "Conect the arduino first", Toast.LENGTH_SHORT).show();
+
+                        byte[] data = {1};
+                        if (usbService != null) {
+
+
+                            myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress, port, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                            myRobot.listenThread();
+                            myRobot.handshake();
+
+
+                        } else {
+
+                            Toast.makeText(getApplicationContext(), "Conect the arduino first", Toast.LENGTH_SHORT).show();
+                        }
                     }
+                    startButton.setText("Stop Robot");
                 }
+
             }
         });
         Button stopButton = (Button) findViewById(R.id.buttonStop);

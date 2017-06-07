@@ -67,6 +67,15 @@ public class MyRobot extends FrettedInstrument{
         txtLog.append("---- ROBOMUS LOG "+ date+ " ----\n");
 
         //fim imprimir log
+
+        this.fOut = fOut;
+        this.fOutLog = fOutLog;
+        this.usbService = usbService;
+
+        this.buffer = new Buffer(this.activity, usbService, fOut, fOutLog);
+
+        //Initializing the OSC Receiver
+        this.receiver = null;
         try {
 
             this.receiver = new OSCPortIn(this.receivePort);
@@ -75,11 +84,6 @@ public class MyRobot extends FrettedInstrument{
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
 
         }
-        this.fOut = fOut;
-        this.fOutLog = fOutLog;
-        this.usbService = usbService;
-
-        this.buffer = new Buffer(this.activity, usbService, fOut, fOutLog);
 
     }
    
@@ -89,13 +93,13 @@ public class MyRobot extends FrettedInstrument{
         
         //instrument attributes
         args.add(this.name);
-        args.add(this.polyphony);
-        args.add(this.typeFamily);
-        args.add(this.specificProtocol);
         args.add(this.myOscAddress);
         args.add(this.myIp);
         args.add(this.receivePort);
-  
+        args.add(this.polyphony);
+        args.add(this.typeFamily);
+        args.add(this.specificProtocol);
+
         //amount of attributes
         args.add(2);
         //fretted instrument attributs
@@ -103,7 +107,7 @@ public class MyRobot extends FrettedInstrument{
         args.add(convertInstrumentoStringToString()); // strings and turnings
 
       
-	    OSCMessage msg = new OSCMessage("/handshake", args);
+	    OSCMessage msg = new OSCMessage("/handshake/instrument", args);
         OSCPortOut sender = null;
 
         try {
@@ -126,9 +130,10 @@ public class MyRobot extends FrettedInstrument{
                        
     }
     private void startBuffer(OSCMessage message){
-        this.serverOscAddress = message.getArguments().get(0).toString();
-        this.severIpAddress = message.getArguments().get(1).toString();
-        this.sendPort = Integer.parseInt(message.getArguments().get(2).toString());
+        this.serverName = message.getArguments().get(0).toString();
+        this.serverOscAddress = message.getArguments().get(1).toString();
+        this.severIpAddress = message.getArguments().get(2).toString();
+        this.sendPort = Integer.parseInt(message.getArguments().get(3).toString());
         //log screen
         final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
         final String s = "handshake: Format OSC = [oscAdd, ip, port]\n Adress:"+ message.getAddress()+
@@ -162,14 +167,12 @@ public class MyRobot extends FrettedInstrument{
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        //Initializing the OSC Receiver
-        this.receiver = null;
 
 
     }
 
     public void listenThread(){
-        System.out.println("Inicio "+ this.receivePort+" ad "+this.myOscAddress);
+        System.out.println("Inicio p="+ this.receivePort+" end="+this.myOscAddress);
 
         OSCListener listener = new OSCListener() {
 
@@ -226,6 +229,21 @@ public class MyRobot extends FrettedInstrument{
             } catch (IOException ex) {
                 Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+
+
+    }
+    public void disconnect(){
+        List args = new ArrayList<>();
+        args.add(this.myOscAddress);
+        OSCMessage msg = new OSCMessage(this.serverOscAddress+"/disconnect/instrument", args);
+
+        try {
+            this.sender.send(msg);
+            receiver.stopListening();
+            buffer.interrupt();
+        } catch (IOException ex) {
+            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
         }
 
 

@@ -15,6 +15,7 @@ public abstract class Instrument {
     protected int polyphony; // quantidade de notas
     protected String myOscAddress; //endereço do OSC do instrumento
     protected String serverOscAddress; //endereço do OSC do instrumento
+    protected String serverName;
     protected String severIpAddress; // endereco do servidor
     protected int sendPort; // porta para envio msgOSC
     protected int receivePort; // porta pra receber msgOSC
