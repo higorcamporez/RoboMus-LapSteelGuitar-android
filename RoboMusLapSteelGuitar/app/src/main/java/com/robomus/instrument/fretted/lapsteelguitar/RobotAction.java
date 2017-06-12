@@ -7,15 +7,21 @@ import android.util.Log;
 
 import com.illposed.osc.OSCMessage;
 import com.robomus.arduinoCommunication.UsbService;
+import com.robomus.instrument.fretted.FrettedNotePosition;
+import com.robomus.util.Note;
+
+import java.util.List;
 
 /**
  * Created by Higor on 10/11/2016.
  */
 public abstract class RobotAction extends Thread{
-    UsbService usbService;
+    private UsbService usbService;
+    private MyRobot myRobot;
+    public RobotAction(MyRobot myRobot) {
+        this.usbService = myRobot.getUsbService();
+        this.myRobot = myRobot;
 
-    public RobotAction(UsbService usbService) {
-        this.usbService = usbService;
 
     }
     /*
@@ -91,6 +97,7 @@ public abstract class RobotAction extends Thread{
     public Byte convertId( int idFromServer){
         return (byte)(idFromServer%128);
     }
+
     public void playSound(OSCMessage oscMessage) {
         System.out.println(oscMessage.getArguments().size()+" [3]"+oscMessage.getArguments().get(3)+" [4]"+oscMessage.getArguments().get(2));
         Integer duration = Integer.parseInt((String)oscMessage.getArguments().get(3));
@@ -129,6 +136,47 @@ public abstract class RobotAction extends Thread{
             audioTrack.write(generatedSnd, 0, generatedSnd.length);
             audioTrack.play();
 
+    }
+    public void playNote(OSCMessage oscMessage){
+        String symbolNote = oscMessage.getArguments().get(2).toString();
+        Double duration = 1500.00;
+        Note note = new Note(symbolNote);
+        List<FrettedNotePosition> notePositions= this.myRobot.getNotePositions(note);
+        if(myRobot.getEmulate() && !notePositions.isEmpty()){
+            playSoundSmartPhone(note.getFrequency(),duration);
+        }else{
+            Log.i("playNote", "playNote: note not possible");
+        }
 
+    }
+    public void playSoundSmartPhone(double frequency, double duration){
+        final int sampleRate = 8000;
+        final int numSamples = (int) (duration/1000) * sampleRate;
+        final double sample[] = new double[numSamples];
+        byte generatedSnd[] = new byte[2 * numSamples];
+
+        // fill out the array
+        for (int i = 0; i < numSamples; ++i) {
+            sample[i] = Math.sin(2 * Math.PI * i / (sampleRate/frequency));
+        }
+
+        // convert to 16 bit pcm sound array
+        // assumes the sample buffer is normalised.
+        int idx = 0;
+        for (final double dVal : sample) {
+            // scale to maximum amplitude
+            final short val = (short) ((dVal * 32767));
+            // in 16 bit wav PCM, first byte is the low order byte
+            generatedSnd[idx++] = (byte) (val & 0x00ff);
+            generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
+
+        }
+
+        final AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                sampleRate, AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, numSamples,
+                AudioTrack.MODE_STATIC);
+        audioTrack.write(generatedSnd, 0, generatedSnd.length);
+        audioTrack.play();
     }
 }

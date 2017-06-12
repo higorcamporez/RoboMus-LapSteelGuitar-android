@@ -18,14 +18,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="com.robomus.higor.robomuslapsteelguitar.MainActivity">
+        <activity android:name="com.robomus.higor.views.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.robomus.higor.robomuslapsteelguitar.LogActivity" />
+        <activity android:name="com.robomus.higor.views.LogActivity" />
         <activity android:name=".BlinkActivity"></activity>
         <service
             android:name="com.robomus.arduinoCommunication.UsbService"

@@ -1,4 +1,4 @@
-package com.robomus.higor.robomuslapsteelguitar;
+package com.robomus.higor.views;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.robomus.arduinoCommunication.UsbService;
 import com.robomus.instrument.fretted.InstrumentString;
 import com.robomus.instrument.fretted.lapsteelguitar.MyRobot;
+import com.robomus.util.Note;
 import com.robumus.higor.robomuslapsteelguitar.R;
 
 
@@ -200,15 +201,13 @@ public class LogActivity extends AppCompatActivity {
                     String oscInstrumentAdress = it.getStringExtra("instrument");
                     int check = Integer.parseInt(it.getStringExtra("arduino"));
 
-                    ArrayList<InstrumentString> l = new ArrayList<InstrumentString>();
-                    l.add(new InstrumentString(0, "A"));
-                    l.add(new InstrumentString(0, "B"));
-                    String specificP = "</playSound;frequency_i;durationSeg_i>";
 
 
                     if (check == 0) {
 
-                        myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress, port, "Fretted", specificP, null, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                        myRobot = new MyRobot(  "laplap", oscInstrumentAdress, port,null,
+                                                thisActivity, myOutWriterLogBlink, myOutWriterLog,
+                                                ipAddress);
                         myRobot.listenThread();
                         myRobot.handshake();
 
@@ -219,7 +218,9 @@ public class LogActivity extends AppCompatActivity {
                         if (usbService != null) {
 
 
-                            myRobot = new MyRobot(12, l, "laplap", 6, oscInstrumentAdress, port, "Fretted", specificP, usbService, thisActivity, myOutWriterLogBlink, myOutWriterLog, ipAddress);
+                            myRobot = new MyRobot(  "laplap", oscInstrumentAdress, port,
+                                                    usbService, thisActivity, myOutWriterLogBlink,
+                                                    myOutWriterLog, ipAddress);
                             myRobot.listenThread();
                             myRobot.handshake();
 

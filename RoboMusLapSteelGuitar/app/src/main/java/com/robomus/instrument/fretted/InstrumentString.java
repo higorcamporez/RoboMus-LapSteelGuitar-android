@@ -5,15 +5,17 @@
  */
 package com.robomus.instrument.fretted;
 
+import com.robomus.util.Note;
+
 /**
  *
  * @author Higor
  */
 public class InstrumentString {
     private int stringNumber;
-    private String openStringNote;
+    private Note openStringNote;
 
-    public InstrumentString(int stringNumber, String openStringNote) {
+    public InstrumentString(int stringNumber, Note openStringNote) {
         this.stringNumber = stringNumber;
         this.openStringNote = openStringNote;
     }
@@ -26,11 +28,15 @@ public class InstrumentString {
         this.stringNumber = stringNumber;
     }
 
-    public String getOpenStringNote() {
+    public Note getOpenStringNote() {
         return openStringNote;
     }
 
-    public void setOpenStringNote(String openStringNote) {
+    public void setOpenStringNote(Note openStringNote) {
         this.openStringNote = openStringNote;
-    }   
+    }
+    public Integer getFret(Note note){
+        return openStringNote.getDistanceTo(note);
+
+    }
 }

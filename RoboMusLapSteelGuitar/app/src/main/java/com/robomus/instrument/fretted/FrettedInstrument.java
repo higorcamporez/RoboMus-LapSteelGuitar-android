@@ -6,8 +6,10 @@
 package com.robomus.instrument.fretted;
 
 import com.robomus.instrument.Instrument;
+import com.robomus.util.Note;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -16,26 +18,35 @@ import java.util.ArrayList;
 public abstract class FrettedInstrument extends Instrument {
     
     protected int nFrets;
-    protected ArrayList<InstrumentString> strings;
+    protected List<InstrumentString> instrumentStrings;
 
-    public FrettedInstrument(int nFrets, ArrayList<InstrumentString> strings, String name,
-                             int polyphony, String OscAddress, int receivePort, String typeFamily, String specificProtocol, String myIp) {
-        super(name, polyphony, OscAddress, receivePort,
-                typeFamily, specificProtocol, myIp);
+    public FrettedInstrument( String name, String OscAddress, int receivePort, String myIp) {
+        super(name, OscAddress, receivePort, myIp);
         
-        this.nFrets = nFrets;
-        this.strings = strings;
+
     }
     
     public String convertInstrumentoStringToString(){
         String formated = "";
         
-        for (InstrumentString s : strings) {
-            String aux = "<"+Integer.toString(s.getStringNumber())+ ";"+ s.getOpenStringNote()+">";
+        for (InstrumentString s : instrumentStrings) {
+            String aux = "<"+Integer.toString(s.getStringNumber())+ ";"+ s.getOpenStringNote().toString()+">";
             formated = formated + aux;
         }
         return formated;
     }
-    
+
+    public List<FrettedNotePosition> getNotePositions(Note note){
+        List<FrettedNotePosition> l = new ArrayList<>();
+        for (InstrumentString instrString: instrumentStrings) {
+
+            Integer fret = instrString.getFret(note);
+            if(fret > 1 && fret < this.nFrets ){
+                l.add(new FrettedNotePosition(fret, instrString.getStringNumber()));
+            }
+
+        }
+        return l;
+    }
     
 }

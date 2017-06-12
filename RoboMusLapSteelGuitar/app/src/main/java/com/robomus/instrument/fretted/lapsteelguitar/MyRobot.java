@@ -6,8 +6,12 @@
 package com.robomus.instrument.fretted.lapsteelguitar;
 
 import android.app.Activity;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.TextView;
+import android.content.Context;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
@@ -30,7 +34,10 @@ import java.util.logging.Logger;
 import com.robomus.arduinoCommunication.UsbService;
 import com.robomus.instrument.fretted.FrettedInstrument;
 import com.robomus.instrument.fretted.InstrumentString;
+import com.robomus.util.Note;
 import com.robumus.higor.robomuslapsteelguitar.R;
+
+import static android.content.Context.WIFI_SERVICE;
 
 
 /**
@@ -46,18 +53,39 @@ public class MyRobot extends FrettedInstrument{
     private OutputStreamWriter fOut;
     private OutputStreamWriter fOutLog;
     private UsbService usbService;
+    private Boolean emulate;
 
     //private PortControl portControl;
     
-    public MyRobot(int nFrets, ArrayList<InstrumentString> strings, String name,
-                   int polyphony, String OscAddress, int receivePort, String typeFamily,
-                   String specificProtocol, UsbService usbService, Activity act,
-                   OutputStreamWriter fOut, OutputStreamWriter fOutLog, String myIp) {
+    public MyRobot( String name, String OscAddress, int receivePort,
+                    UsbService usbService, Activity act,
+                    OutputStreamWriter fOut, OutputStreamWriter fOutLog, String myIp) {
 
-        super(nFrets, strings, name, polyphony, OscAddress, receivePort, typeFamily, specificProtocol, myIp);
-        
-        //this.portControl = new PortControl("COM8",9600);
-        //this.portControl = null;
+        super( name, OscAddress, receivePort, myIp);
+
+        /* lapla informations*/
+
+        ArrayList<InstrumentString> instrStrings = new ArrayList<InstrumentString>();
+
+        instrStrings.add(new InstrumentString(1, new Note("G4")));
+        instrStrings.add(new InstrumentString(2, new Note("F4")));
+        instrStrings.add(new InstrumentString(3, new Note("E4")));
+        instrStrings.add(new InstrumentString(4, new Note("C4")));
+        instrStrings.add(new InstrumentString(5, new Note("A3")));
+        instrStrings.add(new InstrumentString(6, new Note("F3")));
+        instrStrings.add(new InstrumentString(7, new Note("D3")));
+        instrStrings.add(new InstrumentString(8, new Note("A2")));
+        instrStrings.add(new InstrumentString(9, new Note("D2")));
+
+        this.instrumentStrings = instrStrings;
+        this.nFrets = 12;
+        this.polyphony = 9;
+        this.typeFamily = "Fretted";
+        this.specificProtocol = "</playSound;frequency_i;durationSeg_i>" +
+                                "</playNote;note_s>";
+        this.emulate = true;
+        /*end laplap informations*/
+
         TextView txtLog = (TextView) act.findViewById(R.id.textViewLog);
         this.activity = act;
         //imprimir inicio do log com data e hora
@@ -72,7 +100,7 @@ public class MyRobot extends FrettedInstrument{
         this.fOutLog = fOutLog;
         this.usbService = usbService;
 
-        this.buffer = new Buffer(this.activity, usbService, fOut, fOutLog);
+        this.buffer = new Buffer(this.activity, this, fOut, fOutLog);
 
         //Initializing the OSC Receiver
         this.receiver = null;
@@ -86,7 +114,15 @@ public class MyRobot extends FrettedInstrument{
         }
 
     }
-   
+
+    public UsbService getUsbService() {
+        return usbService;
+    }
+
+    public Boolean getEmulate() {
+        return emulate;
+    }
+
     public void handshake(){
 
         List args = new ArrayList<>();
@@ -248,39 +284,7 @@ public class MyRobot extends FrettedInstrument{
 
 
     }
-       /*
-    public void msgToArduino(){
-    byte[] TstArray= new byte[1];
-    TstArray[0]=47;
-        try {
-            portControl.sendData(TstArray);
-        } catch (IOException ex) {
-            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }*/
-    
-    /*
-    public static void main(String[] args) {
-        
-        ArrayList<InstrumentString> l = new ArrayList();
-        l.add(new InstrumentString(0, "A"));
-        l.add(new InstrumentString(0, "B"));
-        String specificP = "</slide;posicaoInicial_int><hgyuiyugyu>";
-        
-        try {
-            MyRobot myRobot = new MyRobot(12, l, "laplap", 6, "/laplap", InetAddress.getByName("192.168.1.232"),
-                    12345, 1234, "Fretted", specificP);
-            
-            myRobot.handshake();
-            myRobot.listenThread();
-            myRobot.msgToArduino();
-            //Thread thread = new Thread("bufferProcess");
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-        
 
-    } */
 
 
         

@@ -51,9 +51,9 @@ public class Buffer extends RobotAction{
     private OutputStreamWriter fOutLog;
 
 
-    public Buffer(Activity act, UsbService usbService, OutputStreamWriter fOut,
+    public Buffer(Activity act, MyRobot myRobot, OutputStreamWriter fOut,
                   OutputStreamWriter fOutLog) {
-        super(usbService);
+        super(myRobot);
 
         this.messages = new ArrayList<OSCMessage>();
         this.idProcessedMsg = new ArrayList<Integer>();
@@ -363,7 +363,8 @@ public class Buffer extends RobotAction{
                             case "synchronize":
                                 break;
                             case "playNote":
-                                
+                                this.playNote(oscMessage);
+                                this.writeMsgLog("playNote: Format = [timeSleep, id, note]",oscMessage);
                                 break;
                             case "playNoteFretted":
                                 break;

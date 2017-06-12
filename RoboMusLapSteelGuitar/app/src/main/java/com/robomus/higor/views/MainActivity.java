@@ -1,4 +1,4 @@
-package com.robomus.higor.robomuslapsteelguitar;
+package com.robomus.higor.views;
 
 import android.content.Intent;
 import android.net.wifi.WifiInfo;
@@ -16,20 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
-import com.illposed.osc.OSCListener;
-import com.illposed.osc.OSCMessage;
-import com.illposed.osc.OSCPortIn;
-
-
-import com.robumus.higor.robomuslapsteelguitar.BlinkActivity;
 import com.robumus.higor.robomuslapsteelguitar.R;
-
-
-import java.io.IOException;
-import java.net.SocketException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class MainActivity extends AppCompatActivity {
