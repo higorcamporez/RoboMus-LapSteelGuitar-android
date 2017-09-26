@@ -6,12 +6,8 @@
 package com.robomus.instrument.fretted.lapsteelguitar;
 
 import android.app.Activity;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.TextView;
-import android.content.Context;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
@@ -37,8 +33,6 @@ import com.robomus.instrument.fretted.InstrumentString;
 import com.robomus.util.Note;
 import com.robumus.higor.robomuslapsteelguitar.R;
 
-import static android.content.Context.WIFI_SERVICE;
-
 
 /**
  *
@@ -54,6 +48,7 @@ public class MyRobot extends FrettedInstrument{
     private OutputStreamWriter fOutLog;
     private UsbService usbService;
     private Boolean emulate;
+    private ToneBar toneBar;
 
     //private PortControl portControl;
     
@@ -82,7 +77,8 @@ public class MyRobot extends FrettedInstrument{
         this.polyphony = 9;
         this.typeFamily = "Fretted";
         this.specificProtocol = "</playSound;frequency_i;durationSeg_i>" +
-                                "</playNote;note_s>";
+                                "</playNote;note_s>"+
+                                "</playHappyBirth>";
         this.emulate = true;
         /*end laplap informations*/
 
@@ -101,6 +97,7 @@ public class MyRobot extends FrettedInstrument{
         this.usbService = usbService;
 
         this.buffer = new Buffer(this.activity, this, fOut, fOutLog);
+        this.toneBar = new ToneBar();
 
         //Initializing the OSC Receiver
         this.receiver = null;
@@ -121,6 +118,14 @@ public class MyRobot extends FrettedInstrument{
 
     public Boolean getEmulate() {
         return emulate;
+    }
+
+    public ToneBar getToneBar() {
+        return toneBar;
+    }
+
+    public void setToneBar(ToneBar toneBar) {
+        this.toneBar = toneBar;
     }
 
     public void handshake(){

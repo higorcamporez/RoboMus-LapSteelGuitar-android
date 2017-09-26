@@ -10,6 +10,7 @@ import com.robomus.arduinoCommunication.UsbService;
 import com.robomus.instrument.fretted.FrettedNotePosition;
 import com.robomus.util.Note;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,12 +19,23 @@ import java.util.List;
 public abstract class RobotAction extends Thread{
     private UsbService usbService;
     private MyRobot myRobot;
+
     public RobotAction(MyRobot myRobot) {
         this.usbService = myRobot.getUsbService();
         this.myRobot = myRobot;
-
-
     }
+    /*
+    * Method to put a robot in initial position. tone bar raised and in fret 0
+    * Format OSC= [id]
+    * Message to Arduino:  action Arduino code (XX)
+    */
+    public void initialRobotPosition() {
+        Log.i("initialPosition", "-");
+        byte[] data = {1};
+        usbService.write(data);
+        myRobot.getToneBar().setInitialPosition();
+    }
+    /*
     /*
     * Method to play a specific string
     * Format OSC= [timeSleep, id, string]
@@ -75,6 +87,20 @@ public abstract class RobotAction extends Thread{
         byte[] data = {0, startPosition, endPosition, idArduino, };
         usbService.write(data);
 
+    }
+    /*
+    method to play a instrumentString with the press fret
+    Format OSC = [timestamp, id, instrumentString, fret ]
+    Message to Arduino:  action Arduino code (00), position, action server id
+    */
+    public void playNote(String id, FrettedNotePosition frettedNotePosition){
+
+        byte instrumentString = frettedNotePosition.getInstrumentString().byteValue();
+        byte fret =  frettedNotePosition.getFret().byteValue();
+
+        byte idArduino = convertId( Integer.parseInt(id) );
+        byte[] data = {0, instrumentString, fret, idArduino, };
+        usbService.write(data);
     }
 
     /* ---------------------- test -----------*/
@@ -137,14 +163,20 @@ public abstract class RobotAction extends Thread{
             audioTrack.play();
 
     }
+
     public void playNote(OSCMessage oscMessage){
         String symbolNote = oscMessage.getArguments().get(2).toString();
         Double duration = 1500.00;
         Note note = new Note(symbolNote);
-        List<FrettedNotePosition> notePositions= this.myRobot.getNotePositions(note);
-        if(myRobot.getEmulate() && !notePositions.isEmpty()){
-            playSoundSmartPhone(note.getFrequency(),duration);
+        List<FrettedNotePosition> notePositions = this.myRobot.getNotePositions(note);
+        if(!notePositions.isEmpty()){
+            if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
+                playSoundSmartPhone(note.getFrequency(), duration);
+            }else{
+
+            }
         }else{
+
             Log.i("playNote", "playNote: note not possible");
         }
 
@@ -178,5 +210,44 @@ public abstract class RobotAction extends Thread{
                 AudioTrack.MODE_STATIC);
         audioTrack.write(generatedSnd, 0, generatedSnd.length);
         audioTrack.play();
+    }
+
+    public void playHappyBirth(OSCMessage oscMessage){
+        int delay = 1500;
+
+        List<Note> notes = new ArrayList<>();
+
+        notes.add(new Note("E4"));
+        notes.add(new Note("E4"));
+        notes.add(new Note("F#4"));
+        notes.add(new Note("E4"));
+        notes.add(new Note("A4"));
+        notes.add(new Note("G#4"));
+        notes.add(new Note("E4"));
+        notes.add(new Note("E4"));
+        notes.add(new Note("F#4"));
+        notes.add(new Note("B4"));
+        notes.add(new Note("A4"));
+        notes.add(new Note("A4"));
+        for (Note note: notes) {
+            List<FrettedNotePosition> notePositions = this.myRobot.getNotePositions(note);
+            if(!notePositions.isEmpty()){
+                if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
+                    playSoundSmartPhone(note.getFrequency(), delay);
+                }else{
+                    playNote(oscMessage.getArguments().get(0).toString(), notePositions.get(0));
+                }
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }else{
+
+                Log.i("playNote", "playNote: note not possible");
+            }
+        }
+
+
     }
 }

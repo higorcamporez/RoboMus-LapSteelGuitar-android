@@ -133,7 +133,8 @@ public class LogActivity extends AppCompatActivity {
         setContentView(R.layout.activity_log);
         mHandler = new MyHandler(this);
         //search the ip adress
-        WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+        //WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
         final String ipAddress = Formatter.formatIpAddress(ip);
@@ -199,13 +200,14 @@ public class LogActivity extends AppCompatActivity {
                     int port = Integer.parseInt(it.getStringExtra("port"));
 
                     String oscInstrumentAdress = it.getStringExtra("instrument");
+                    String name = oscInstrumentAdress.substring(1);
                     int check = Integer.parseInt(it.getStringExtra("arduino"));
 
 
 
                     if (check == 0) {
 
-                        myRobot = new MyRobot(  "laplap", oscInstrumentAdress, port,null,
+                        myRobot = new MyRobot(  name, oscInstrumentAdress, port,null,
                                                 thisActivity, myOutWriterLogBlink, myOutWriterLog,
                                                 ipAddress);
                         myRobot.listenThread();
@@ -218,7 +220,7 @@ public class LogActivity extends AppCompatActivity {
                         if (usbService != null) {
 
 
-                            myRobot = new MyRobot(  "laplap", oscInstrumentAdress, port,
+                            myRobot = new MyRobot(  name, oscInstrumentAdress, port,
                                                     usbService, thisActivity, myOutWriterLogBlink,
                                                     myOutWriterLog, ipAddress);
                             myRobot.listenThread();
@@ -227,7 +229,7 @@ public class LogActivity extends AppCompatActivity {
 
                         } else {
 
-                            Toast.makeText(getApplicationContext(), "Conect the arduino first", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Connect the arduino first", Toast.LENGTH_SHORT).show();
                         }
                     }
                     startButton.setText("Stop Robot");

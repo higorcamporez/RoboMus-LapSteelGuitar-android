@@ -1,5 +1,6 @@
 package com.robomus.higor.views;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -47,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+        //WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
         String ipAddress = Formatter.formatIpAddress(ip);

@@ -57,13 +57,11 @@ public class Buffer extends RobotAction{
 
         this.messages = new ArrayList<OSCMessage>();
         this.idProcessedMsg = new ArrayList<Integer>();
-        this.usbService = usbService;
-        Log.d("buffer","criouu");
         this.activity = act;
         View v = activity.findViewById(R.id.view);
         v.setBackgroundColor(0xFFcc0000);
 
-
+    /*
         this.fOut = fOut;
         this.fOutLog = fOutLog;
         try {
@@ -71,8 +69,11 @@ public class Buffer extends RobotAction{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    */
 
-
+        /* enviar robo para posicao inicial */
+        if(myRobot.getUsbService() != null)
+            initialRobotPosition();
 
     }
 
@@ -219,7 +220,7 @@ public class Buffer extends RobotAction{
         if(this.usbService != null){
             this.usbService.write(b);
         }
-
+        /*
         try {
 
             fOut.append(msg.getArguments().get(0).toString()
@@ -228,6 +229,7 @@ public class Buffer extends RobotAction{
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
 
         //send msg confirm msg
         /*
@@ -406,6 +408,10 @@ public class Buffer extends RobotAction{
                                 break;
                             case "playSound":
                                 this.playSound(oscMessage);
+                                this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
+                                break;
+                            case "playHappyBirth":
+                                this.playHappyBirth(oscMessage);
                                 this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
                                 break;
                         }

@@ -27,11 +27,11 @@ public abstract class Instrument {
                       int receivePort,  String myIp) {
         
         this.name = name;
-        this.polyphony = polyphony;
+        ///this.polyphony = polyphony;
         this.myOscAddress = OscAddress;
         this.receivePort = receivePort;
-        this.typeFamily = typeFamily;
-        this.specificProtocol = specificProtocol;
+        //this.typeFamily = typeFamily;
+        //this.specificProtocol = specificProtocol;
         this.myIp = myIp;
     }
     
