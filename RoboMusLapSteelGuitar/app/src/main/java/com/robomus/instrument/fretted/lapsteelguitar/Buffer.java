@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public class Buffer extends RobotAction{
 
     private List<OSCMessage> messages;
-    private List<Integer> idProcessedMsg;
+    protected List<Integer> idProcessedMsg;
     private long lastServerTime;
     private long lastInstrumentTime;
     private int thresold = 100;
@@ -110,7 +110,7 @@ public class Buffer extends RobotAction{
         imprimirId();
 
         for (Integer id: this.idProcessedMsg) {
-            Log.i("comparador", Integer.toString(id%128) +" - ardId= "+ idFromArduino );
+            //Log.i("comparador", Integer.toString(id%128) +" - ardId= "+ idFromArduino );
             if( (id%128) == idFromArduino ){
                 this.idProcessedMsg.remove(id);
                 return id;
@@ -298,11 +298,11 @@ public class Buffer extends RobotAction{
         final StringBuffer sb = new StringBuffer(txt);
         sb.setCharAt(txt.length()-1, ']');
         //saving in a file log
-        try {
+        /*try {
             this.fOutLog.append("\n"+format+"\n Adress: "+oscMessage.getAddress()+" ["+sb.toString()+"\n");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         this.activity.runOnUiThread(new Runnable()
         {
 
@@ -336,13 +336,9 @@ public class Buffer extends RobotAction{
 
                 final OSCMessage oscMessage = messages.get(0);
                 //add the msg id in a list
-                this.idProcessedMsg.add((int) oscMessage.getArguments().get(1));
-
-                Log.i("msg",messages.get(0).getArguments().get(0).toString());
-                timeSleep= Long.parseLong(messages.get(0).getArguments().get(0).toString());
+                this.idProcessedMsg.add( Integer.parseInt( oscMessage.getArguments().get(0).toString()) );
 
                 header = getHeader(oscMessage);
-                Log.e("buffer", "Header="+header+" timemsg="+timeSleep);
 
                 if(header.equals("synch")){
                     Log.d("synch","synch");
@@ -353,8 +349,7 @@ public class Buffer extends RobotAction{
                 }else{
                     
                     if (header != null) {
-                        
-                        System.out.println("Adress = " + header);
+
 
                         switch (header) {
                             case "blink":
@@ -366,7 +361,7 @@ public class Buffer extends RobotAction{
                                 break;
                             case "playNote":
                                 this.playNote(oscMessage);
-                                this.writeMsgLog("playNote: Format = [timeSleep, id, note]",oscMessage);
+                                this.writeMsgLog("playNote: Format = [ id, RT, dur, note]",oscMessage);
                                 break;
                             case "playNoteFretted":
                                 break;
@@ -415,11 +410,7 @@ public class Buffer extends RobotAction{
                                 this.writeMsgLog("testeMsg: Format OSC = [timestamp, id]",oscMessage);
                                 break;
                         }
-                        try {
-                            Thread.sleep(timeSleep);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+
                         remove();
 
                     }

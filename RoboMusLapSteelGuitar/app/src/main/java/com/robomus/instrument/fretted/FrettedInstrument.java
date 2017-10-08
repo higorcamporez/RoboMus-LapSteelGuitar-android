@@ -6,6 +6,7 @@
 package com.robomus.instrument.fretted;
 
 import com.robomus.instrument.Instrument;
+import com.robomus.instrument.fretted.lapsteelguitar.ToneBar;
 import com.robomus.util.Note;
 
 import java.util.ArrayList;
@@ -18,11 +19,14 @@ import java.util.List;
 public abstract class FrettedInstrument extends Instrument {
     
     protected int nFrets;
+    protected ToneBar toneBar;
     protected List<InstrumentString> instrumentStrings;
 
     public FrettedInstrument( String name, String OscAddress, int receivePort, String myIp) {
         super(name, OscAddress, receivePort, myIp);
-        
+
+        //Initializing tone bar
+        this.toneBar = new ToneBar();
 
     }
     
@@ -47,6 +51,32 @@ public abstract class FrettedInstrument extends Instrument {
 
         }
         return l;
+    }
+
+    public FrettedNotePosition getNoteClosePosition(Note note) {
+
+        List<FrettedNotePosition> notePositions = this.getNotePositions(note);
+
+        if (!notePositions.isEmpty()) {
+
+            FrettedNotePosition frettedNotePosition = new FrettedNotePosition(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+            //this.lapBot.setCurrentFret(frettedNotePosition.getFret());
+
+            for (FrettedNotePosition notePosition : notePositions) {
+                if (Math.abs(notePosition.getFret() - this.toneBar.getBarPosition())
+                        < Math.abs(frettedNotePosition.getFret() - this.toneBar.getBarPosition())
+                        ) {
+                    frettedNotePosition = notePosition;
+                }
+            }
+            this.toneBar.setBarPosition(frettedNotePosition.getFret());
+
+            return frettedNotePosition;
+
+        }else{
+            return null;
+        }
     }
     
 }

@@ -17,6 +17,7 @@ import java.util.List;
  * Created by Higor on 10/11/2016.
  */
 public abstract class RobotAction extends Thread{
+
     private UsbService usbService;
     private MyRobot myRobot;
 
@@ -30,7 +31,7 @@ public abstract class RobotAction extends Thread{
     * Message to Arduino:  action Arduino code (XX)
     */
     public void initialRobotPosition() {
-        Log.i("initialPosition", "-");
+        Log.i("initialRobotPosition", "-");
         byte[] data = {1};
         usbService.write(data);
         myRobot.getToneBar().setInitialPosition();
@@ -42,11 +43,12 @@ public abstract class RobotAction extends Thread{
     * Message to Arduino:  action Arduino code (30), string, action server id
     */
     public void playString(OSCMessage oscMessage) {
-        Log.i("playString", "Chegou");
-        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
+        Log.i("RobotAction", "playString() - Chegou");
+        byte idMsg = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
         byte string = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte[] data = {30, string, idArduino};
+        byte[] data = {30, string, idMsg};
         usbService.write(data);
+
 
     }
     /*
@@ -56,11 +58,10 @@ public abstract class RobotAction extends Thread{
     */
     public void positionBar(OSCMessage oscMessage) {
         byte fret = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
-        byte[] data = {60, fret, idArduino};
+        byte idMsg = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
+        byte[] data = {60, fret, idMsg};
         usbService.write(data);
-        Log.i("action","position bar, fret="+fret);
-
+        Log.i(this.getName(),"positionBar() - fret="+fret);
     }
     /*
     method to move bar up or down
@@ -69,7 +70,7 @@ public abstract class RobotAction extends Thread{
     */
     public void moveBar(OSCMessage oscMessage) {
         byte posicao = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
+        byte idArduino = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
         byte[] data = {50, posicao, idArduino};
         usbService.write(data);
 
@@ -83,7 +84,7 @@ public abstract class RobotAction extends Thread{
         byte startPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
         byte endPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
         //byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
-        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
+        byte idArduino = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
         byte[] data = {0, startPosition, endPosition, idArduino, };
         usbService.write(data);
 
@@ -98,14 +99,14 @@ public abstract class RobotAction extends Thread{
         byte instrumentString = frettedNotePosition.getInstrumentString().byteValue();
         byte fret =  frettedNotePosition.getFret().byteValue();
 
-        byte idArduino = convertId( Integer.parseInt(id) );
-        byte[] data = {0, instrumentString, fret, idArduino, };
+        byte idArduino = convertId( Long.parseLong(id) );
+        byte[] data = {65, instrumentString, fret, idArduino };
         usbService.write(data);
     }
 
     /* ---------------------- test -----------*/
     public void testMsg(OSCMessage oscMessage){
-        byte idArduino = convertId( Integer.parseInt(oscMessage.getArguments().get(1).toString() ) );
+        byte idArduino = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
         Log.i("id env ard", Integer.toString(idArduino&0xFF)+" - "+oscMessage.getArguments().get(1).toString());
         byte[] data = {100, idArduino };
         usbService.write(data);
@@ -120,7 +121,7 @@ public abstract class RobotAction extends Thread{
     * method to convert the id from server to send to arduino
     * @paran idFromServer the message id received from the server
     */
-    public Byte convertId( int idFromServer){
+    public Byte convertId( Long idFromServer){
         return (byte)(idFromServer%128);
     }
 
@@ -165,19 +166,42 @@ public abstract class RobotAction extends Thread{
     }
 
     public void playNote(OSCMessage oscMessage){
-        String symbolNote = oscMessage.getArguments().get(2).toString();
-        Double duration = 1500.00;
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        String symbolNote = oscMessage.getArguments().get(3).toString();
+
+        Log.i(this.getName(),"playNote: rt="+relativeTime);
         Note note = new Note(symbolNote);
-        List<FrettedNotePosition> notePositions = this.myRobot.getNotePositions(note);
-        if(!notePositions.isEmpty()){
+
+        FrettedNotePosition notePosition = this.myRobot.getNoteClosePosition(note);
+
+        if(notePosition != null){
             if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
                 playSoundSmartPhone(note.getFrequency(), duration);
             }else{
 
+                byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+                byte highRelativeTime = (byte)(relativeTime>>8);
+                byte lowDuration = (byte)(duration&0xFF);
+                byte highDuration = (byte)(duration>>8);
+
+                byte instrumentString = notePosition.getInstrumentString().byteValue();
+                byte fret =  notePosition.getFret().byteValue();
+
+                byte idMsgArduino = convertId( idMessage );
+                byte[] data = { 65, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                                lowDuration, instrumentString, fret  };
+
+                usbService.write(data);
+                Log.i(this.getName(),"playNote: Enviou");
+
             }
         }else{
 
-            Log.i("playNote", "playNote: note not possible");
+            Log.i(this.getName(), "playNote: note "+symbolNote+" not possible");
+
         }
 
     }
@@ -223,19 +247,38 @@ public abstract class RobotAction extends Thread{
         notes.add(new Note("E4"));
         notes.add(new Note("A4"));
         notes.add(new Note("G#4"));
+
         notes.add(new Note("E4"));
         notes.add(new Note("E4"));
         notes.add(new Note("F#4"));
+        notes.add(new Note("E4"));
         notes.add(new Note("B4"));
         notes.add(new Note("A4"));
         notes.add(new Note("A4"));
+
+        notes.add(new Note("C#5"));
+        notes.add(new Note("C#5"));
+        notes.add(new Note("E5"));
+        notes.add(new Note("C#5"));
+        notes.add(new Note("A4"));
+        notes.add(new Note("G#4"));
+        notes.add(new Note("F#4"));
+
+        notes.add(new Note("D5"));
+        notes.add(new Note("D5"));
+        notes.add(new Note("C#5"));
+        notes.add(new Note("A4"));
+        notes.add(new Note("B4"));
+        notes.add(new Note("A4"));
+        notes.add(new Note("A4"));
+
         for (Note note: notes) {
-            List<FrettedNotePosition> notePositions = this.myRobot.getNotePositions(note);
-            if(!notePositions.isEmpty()){
+            FrettedNotePosition notePosition = this.myRobot.getNoteClosePosition(note);
+            if(notePosition != null){
                 if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
                     playSoundSmartPhone(note.getFrequency(), delay);
                 }else{
-                    playNote(oscMessage.getArguments().get(0).toString(), notePositions.get(0));
+                    playNote(oscMessage.getArguments().get(0).toString(), notePosition);
                 }
                 try {
                     Thread.sleep(delay);
@@ -244,7 +287,7 @@ public abstract class RobotAction extends Thread{
                 }
             }else{
 
-                Log.i("playNote", "playNote: note not possible");
+                Log.i("playNote", "playNote: note "+note.getSymbol()+note.getOctavePitch() +" not possible");
             }
         }
 

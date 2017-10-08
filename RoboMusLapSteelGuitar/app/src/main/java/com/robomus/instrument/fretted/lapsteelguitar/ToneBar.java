@@ -6,7 +6,7 @@ package com.robomus.instrument.fretted.lapsteelguitar;
 
 public class ToneBar {
 
-    private Integer fretPosition;
+    private Integer barPosition;
     private Boolean isPressedDown;
 
     public ToneBar() {
@@ -14,20 +14,21 @@ public class ToneBar {
     }
 
     public ToneBar(Integer fretPosition, Boolean isPressedDown) {
-        this.fretPosition = fretPosition;
+        this.barPosition = fretPosition;
         this.isPressedDown = isPressedDown;
     }
 
     public void setInitialPosition(){
-        fretPosition = 0;
+        barPosition = 0;
         isPressedDown = false;
     }
-    public Integer getFretPosition() {
-        return fretPosition;
+
+    public Integer getBarPosition() {
+        return barPosition;
     }
 
-    public void setFretPosition(Integer fretPosition) {
-        this.fretPosition = fretPosition;
+    public void setBarPosition(Integer barPosition) {
+        this.barPosition = barPosition;
     }
 
     public Boolean getPressedDown() {

@@ -48,7 +48,6 @@ public class MyRobot extends FrettedInstrument{
     private OutputStreamWriter fOutLog;
     private UsbService usbService;
     private Boolean emulate;
-    private ToneBar toneBar;
 
     //private PortControl portControl;
     
@@ -77,9 +76,15 @@ public class MyRobot extends FrettedInstrument{
         this.polyphony = 9;
         this.typeFamily = "Fretted";
         this.specificProtocol = "</playSound;frequency_i;durationSeg_i>" +
-                                "</playNote;note_s>"+
+                                "</playNote;relative_time_l; durationMillis_l; note_s>"+
                                 "</playHappyBirth>";
-        this.emulate = true;
+        if(usbService == null){
+            this.emulate = true;
+        }else{
+            this.emulate = false;
+        }
+
+
         /*end laplap informations*/
 
         TextView txtLog = (TextView) act.findViewById(R.id.textViewLog);
@@ -97,7 +102,6 @@ public class MyRobot extends FrettedInstrument{
         this.usbService = usbService;
 
         this.buffer = new Buffer(this.activity, this, fOut, fOutLog);
-        this.toneBar = new ToneBar();
 
         //Initializing the OSC Receiver
         this.receiver = null;

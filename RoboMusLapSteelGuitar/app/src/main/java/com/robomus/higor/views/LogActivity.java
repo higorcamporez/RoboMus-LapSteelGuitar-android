@@ -328,12 +328,12 @@ public class LogActivity extends AppCompatActivity {
 
                         if(!data.isEmpty()) {
                             //receive a message from arduino
-                            Log.i("tempo", "string=" + (data));
+                            Log.i("Arduino-receiver", "string=" + (data));
                             byte dataBytes[] = data.getBytes();
                             for(byte b: dataBytes){
                                 //b & 0xFF convert to unsigned byte
                                 this.mActivity.get().myRobot.sendConfirmActionMessage(b&0xFF);
-                                Log.i("tempo", "Tempo b=" + (b&0xFF));
+                                Log.i("Arduino-receiver", "Tempo b=" + (b&0xFF));
                             }
 
                             /*
