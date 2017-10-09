@@ -39,40 +39,85 @@ public abstract class RobotAction extends Thread{
     /*
     /*
     * Method to play a specific string
-    * Format OSC= [timeSleep, id, string]
-    * Message to Arduino:  action Arduino code (30), string, action server id
+    * Format OSC= [id, RT, dur, string]
+    * Message to Arduino:  action Arduino code (30), string
     */
     public void playString(OSCMessage oscMessage) {
-        Log.i("RobotAction", "playString() - Chegou");
-        byte idMsg = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
-        byte string = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte[] data = {30, string, idMsg};
+        Log.i("RobotAction", "playString() - inicio");
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        byte instrumentString = Byte.parseByte(oscMessage.getArguments().get(3).toString());
+
+        byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+        byte highRelativeTime = (byte)(relativeTime>>8);
+        byte lowDuration = (byte)(duration&0xFF);
+        byte highDuration = (byte)(duration>>8);
+
+
+        byte idMsgArduino = convertId( idMessage );
+        byte[] data = { 30, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                        lowDuration, instrumentString  };
+
         usbService.write(data);
 
 
     }
     /*
     method to move the bar to a specific position
-    Format OSC = [timestamp, id, fretPosition]
-    Message to Arduino:  action Arduino code (60), fretPosition, action server id
+    Format OSC = [id, RT, dur, fret]
+    Message to Arduino:  action Arduino code (60), fretPosition
     */
     public void positionBar(OSCMessage oscMessage) {
-        byte fret = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idMsg = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
-        byte[] data = {60, fret, idMsg};
+
+        Log.i("RobotAction", "positionBar() - inicio");
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        byte fret = Byte.parseByte(oscMessage.getArguments().get(3).toString());
+
+        byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+        byte highRelativeTime = (byte)(relativeTime>>8);
+        byte lowDuration = (byte)(duration&0xFF);
+        byte highDuration = (byte)(duration>>8);
+
+
+        byte idMsgArduino = convertId( idMessage );
+        byte[] data = { 60, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                lowDuration, fret  };
+
         usbService.write(data);
-        Log.i(this.getName(),"positionBar() - fret="+fret);
+
+
     }
     /*
-    method to move bar up or down
-    Format OSC = [timestamp, id, position] position = 0 -> down, 1-> up
-    Message to Arduino:  action Arduino code (50), position, action server id
+    method to move bar up or down(press)
+    Format OSC = [id, RT, dur, position] position = 0 -> down, 1-> up
+    Message to Arduino:  action Arduino code (50), position
     */
     public void moveBar(OSCMessage oscMessage) {
-        byte posicao = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte idArduino = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
-        byte[] data = {50, posicao, idArduino};
+
+        Log.i("RobotAction", "moveBar() - inicio");
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        byte position = Byte.parseByte(oscMessage.getArguments().get(3).toString());
+
+        byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+        byte highRelativeTime = (byte)(relativeTime>>8);
+        byte lowDuration = (byte)(duration&0xFF);
+        byte highDuration = (byte)(duration>>8);
+
+
+        byte idMsgArduino = convertId( idMessage );
+        byte[] data = { 50, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                lowDuration, position  };
+
         usbService.write(data);
+
 
     }
     /*

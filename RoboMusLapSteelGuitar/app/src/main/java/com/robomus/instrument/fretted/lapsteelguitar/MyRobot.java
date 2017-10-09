@@ -76,8 +76,11 @@ public class MyRobot extends FrettedInstrument{
         this.polyphony = 9;
         this.typeFamily = "Fretted";
         this.specificProtocol = "</playSound;frequency_i;durationSeg_i>" +
-                                "</playNote;relative_time_l; durationMillis_l; note_s>"+
-                                "</playHappyBirth>";
+                                "</playNote;relative_time_i;durationMillis_i;note_s>"+
+                                "</playString;relative_time_i;durationMillis_i;instrumentString_i]>"+
+                                "</positionBar;relative_time_i;durationMillis_i;fret_i]>"+
+                                "</moveBar;relative_time_i;durationMillis_i;position]>";
+
         if(usbService == null){
             this.emulate = true;
         }else{

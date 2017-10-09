@@ -367,7 +367,7 @@ public class Buffer extends RobotAction{
                                 break;
                             case "playString":
                                 this.playString(oscMessage);
-                                this.writeMsgLog("playString: Format = [timeSleep, id, string]",oscMessage);
+                                this.writeMsgLog("playString: Format = [id, RT, dur, string]",oscMessage);
                                 break;
                             case "slide":
                                 this.slide(oscMessage);
@@ -375,11 +375,11 @@ public class Buffer extends RobotAction{
                                 break;
                             case "moveBar":
                                 this.moveBar(oscMessage);
-                                this.writeMsgLog("moveBar: Format = [timestamp, id, position] (0->down, 1->up)",oscMessage);
+                                this.writeMsgLog("moveBar: Format = [id, RT, dur, position] (0->down, 1->up)",oscMessage);
                                 break;
                             case "positionBar":
                                 this.positionBar(oscMessage);
-                                this.writeMsgLog("positionBar: Format OSC = [timestamp, id, fretPosition]",oscMessage);
+                                this.writeMsgLog("positionBar: Format OSC = [id, RT, dur, fretPosition]",oscMessage);
                                 break;
                             case "volumeControl":
                                 break;
