@@ -18,13 +18,25 @@ import java.util.List;
  */
 public abstract class RobotAction extends Thread{
 
+    private static final int MAX_ARDUINO_BUFFER = 64;
+
     private UsbService usbService;
     private MyRobot myRobot;
+    protected int nBytes;
+    protected int lastBytes;
 
     public RobotAction(MyRobot myRobot) {
         this.usbService = myRobot.getUsbService();
         this.myRobot = myRobot;
+        this.nBytes = 0;
+        this.lastBytes = 0;
     }
+
+    public int getBufferArduino(){
+        return MAX_ARDUINO_BUFFER - nBytes;
+    }
+
+
     /*
     * Method to put a robot in initial position. tone bar raised and in fret 0
     * Format OSC= [id]
@@ -35,6 +47,8 @@ public abstract class RobotAction extends Thread{
         byte[] data = {1};
         usbService.write(data);
         myRobot.getToneBar().setInitialPosition();
+        nBytes += data.length;
+        lastBytes = data.length;
     }
     /*
     /*
@@ -61,8 +75,41 @@ public abstract class RobotAction extends Thread{
                         lowDuration, instrumentString  };
 
         usbService.write(data);
+        nBytes+=data.length;
+        lastBytes = data.length;
+
+    }
+    /*
+    * Method to play strings together
+    * Format OSC= [id, RT, dur, array_string]
+    * Message to Arduino:  action Arduino code (40), array_string
+    */
+    public void playStringTogether(OSCMessage oscMessage) {
+        Log.i("RobotAction", "playStringTogether() - inicio");
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        Short strings = Short.parseShort(oscMessage.getArguments().get(3).toString());
+
+        byte LowString = (byte)(strings&0xFF);
+        byte highString = (byte)(strings>>8) ;
+
+        byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+        byte highRelativeTime = (byte)(relativeTime>>8);
+        byte lowDuration = (byte)(duration&0xFF);
+        byte highDuration = (byte)(duration>>8);
 
 
+        byte idMsgArduino = convertId( idMessage );
+        byte[] data = { 40, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                lowDuration, highString, LowString  };
+
+        usbService.write(data);
+        nBytes+=data.length;
+        lastBytes = data.length;
+
+        Log.i("RobotAction", "playStringTogether() - fim");
     }
     /*
     method to move the bar to a specific position
@@ -89,6 +136,8 @@ public abstract class RobotAction extends Thread{
                 lowDuration, fret  };
 
         usbService.write(data);
+        nBytes+=data.length;
+        lastBytes = data.length;
 
 
     }
@@ -117,21 +166,83 @@ public abstract class RobotAction extends Thread{
                 lowDuration, position  };
 
         usbService.write(data);
+        nBytes+=data.length;
+        lastBytes = data.length;
 
 
     }
     /*
     method to slide bar
-    Format OSC = [timestamp, id, start position, end position ]
-    Message to Arduino:  action Arduino code (00), position, action server id
+    Format OSC = [id, RT, dur, initialFret, endFret ]
+    Message to Arduino:  action Arduino code (55), position, action server id
     */
     public void slide(OSCMessage oscMessage) {
-        byte startPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        byte endPosition = Byte.parseByte(oscMessage.getArguments().get(2).toString());
-        //byte idArduino = Byte.parseByte(oscMessage.getArguments().get(1).toString());
-        byte idArduino = convertId( Long.parseLong(oscMessage.getArguments().get(1).toString() ) );
-        byte[] data = {0, startPosition, endPosition, idArduino, };
+
+        Log.i("RobotAction", "slide() - inicio");
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        byte startFret = Byte.parseByte(oscMessage.getArguments().get(3).toString());
+        byte endFret = Byte.parseByte(oscMessage.getArguments().get(4).toString());
+
+        byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+        byte highRelativeTime = (byte)(relativeTime>>8);
+        byte lowDuration = (byte)(duration&0xFF);
+        byte highDuration = (byte)(duration>>8);
+
+
+        byte idMsgArduino = convertId( idMessage );
+        byte[] data = { 55, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                lowDuration, startFret, endFret  };
+
         usbService.write(data);
+        nBytes+=data.length;
+        lastBytes = data.length;
+
+        Log.i("RobotAction", "slide() - fim");
+    }
+
+    public void playNote(OSCMessage oscMessage){
+
+        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
+        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
+        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
+        String symbolNote = oscMessage.getArguments().get(3).toString();
+
+
+        Note note = new Note(symbolNote);
+
+        FrettedNotePosition notePosition = this.myRobot.getNoteClosePosition(note);
+
+        if(notePosition != null){
+            if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
+                playSoundSmartPhone(note.getFrequency(), duration);
+            }else{
+
+                byte lowRelativeTime =  (byte)(relativeTime&0xFF);
+                byte highRelativeTime = (byte)(relativeTime>>8);
+                byte lowDuration = (byte)(duration&0xFF);
+                byte highDuration = (byte)(duration>>8);
+
+                byte instrumentString = notePosition.getInstrumentString().byteValue();
+                byte fret =  notePosition.getFret().byteValue();
+
+                byte idMsgArduino = convertId( idMessage );
+                byte[] data = { 65, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
+                        lowDuration, instrumentString, fret  };
+
+                usbService.write(data);
+                nBytes+=data.length;
+                lastBytes = data.length;
+                Log.i(this.getName(),"playNote: Enviou");
+
+            }
+        }else{
+
+            Log.i(this.getName(), "playNote: note "+symbolNote+" not possible");
+
+        }
 
     }
     /*
@@ -210,46 +321,7 @@ public abstract class RobotAction extends Thread{
 
     }
 
-    public void playNote(OSCMessage oscMessage){
 
-        Long idMessage = Long.parseLong(oscMessage.getArguments().get(0).toString());
-        Short relativeTime = Short.parseShort(oscMessage.getArguments().get(1).toString());
-        Short duration = Short.parseShort(oscMessage.getArguments().get(2).toString());
-        String symbolNote = oscMessage.getArguments().get(3).toString();
-
-        Log.i(this.getName(),"playNote: rt="+relativeTime);
-        Note note = new Note(symbolNote);
-
-        FrettedNotePosition notePosition = this.myRobot.getNoteClosePosition(note);
-
-        if(notePosition != null){
-            if(myRobot.getEmulate()) { // verifica se é emulacao. vai emitir som no celular
-                playSoundSmartPhone(note.getFrequency(), duration);
-            }else{
-
-                byte lowRelativeTime =  (byte)(relativeTime&0xFF);
-                byte highRelativeTime = (byte)(relativeTime>>8);
-                byte lowDuration = (byte)(duration&0xFF);
-                byte highDuration = (byte)(duration>>8);
-
-                byte instrumentString = notePosition.getInstrumentString().byteValue();
-                byte fret =  notePosition.getFret().byteValue();
-
-                byte idMsgArduino = convertId( idMessage );
-                byte[] data = { 65, idMsgArduino, highRelativeTime, lowRelativeTime, highDuration,
-                                lowDuration, instrumentString, fret  };
-
-                usbService.write(data);
-                Log.i(this.getName(),"playNote: Enviou");
-
-            }
-        }else{
-
-            Log.i(this.getName(), "playNote: note "+symbolNote+" not possible");
-
-        }
-
-    }
     public void playSoundSmartPhone(double frequency, double duration){
         final int sampleRate = 8000;
         final int numSamples = (int) (duration/1000) * sampleRate;
@@ -338,4 +410,6 @@ public abstract class RobotAction extends Thread{
 
 
     }
+
+
 }

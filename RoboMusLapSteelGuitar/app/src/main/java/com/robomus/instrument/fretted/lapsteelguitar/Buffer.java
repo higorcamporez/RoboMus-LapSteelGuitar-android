@@ -113,6 +113,7 @@ public class Buffer extends RobotAction{
             //Log.i("comparador", Integer.toString(id%128) +" - ardId= "+ idFromArduino );
             if( (id%128) == idFromArduino ){
                 this.idProcessedMsg.remove(id);
+                this.nBytes -= this.lastBytes;
                 return id;
             }
         }
@@ -331,17 +332,23 @@ public class Buffer extends RobotAction{
         final TextView txtLog = (TextView) this.activity.findViewById(R.id.textViewLog);
 
         while(true){
+           // Log.i("buffer","run: "+getBufferArduino());
 
-            if (!this.messages.isEmpty()) {
+            if (!this.messages.isEmpty()&& (getBufferArduino() >15)  ) {
 
                 final OSCMessage oscMessage = messages.get(0);
+                int idMessage = Integer.parseInt(oscMessage.getArguments().get(0).toString());
+
+                if(getIdConfirmMessage(idMessage) != -1){ //o arduino aceita id até 128 apenas
+                    continue;
+                }
                 //add the msg id in a list
-                this.idProcessedMsg.add( Integer.parseInt( oscMessage.getArguments().get(0).toString()) );
+                this.idProcessedMsg.add( idMessage );
 
                 header = getHeader(oscMessage);
 
                 if(header.equals("synch")){
-                    Log.d("synch","synch");
+                    Log.i("synch","synch");
                     synch(oscMessage);
                 }else if(header.equals("synchStart")){
                      Log.d("synch","synchStart");
@@ -363,15 +370,17 @@ public class Buffer extends RobotAction{
                                 this.playNote(oscMessage);
                                 this.writeMsgLog("playNote: Format = [ id, RT, dur, note]",oscMessage);
                                 break;
-                            case "playNoteFretted":
-                                break;
                             case "playString":
                                 this.playString(oscMessage);
                                 this.writeMsgLog("playString: Format = [id, RT, dur, string]",oscMessage);
                                 break;
+                            case "playStringTogether":
+                                this.playStringTogether(oscMessage);
+                                this.writeMsgLog("playStringTogether: Format = [id, RT, dur, array_string]",oscMessage);
+                                break;
                             case "slide":
                                 this.slide(oscMessage);
-                                this.writeMsgLog("slide: Format = [timestamp, id, start position, end position]",oscMessage);
+                                this.writeMsgLog("slide: Format = [timestamp, id, startFret, endFret]",oscMessage);
                                 break;
                             case "moveBar":
                                 this.moveBar(oscMessage);

@@ -78,8 +78,11 @@ public class MyRobot extends FrettedInstrument{
         this.specificProtocol = "</playSound;frequency_i;durationSeg_i>" +
                                 "</playNote;relative_time_i;durationMillis_i;note_s>"+
                                 "</playString;relative_time_i;durationMillis_i;instrumentString_i]>"+
+                                "</playStringTogether;relative_time_i;durationMillis_i;array_string]>"+
                                 "</positionBar;relative_time_i;durationMillis_i;fret_i]>"+
-                                "</moveBar;relative_time_i;durationMillis_i;position]>";
+                                "</moveBar;relative_time_i;durationMillis_i;position]>"+
+                                "</slide;relative_time_i;durationMillis_i;startFret;endFret]>";
+
 
         if(usbService == null){
             this.emulate = true;
@@ -116,6 +119,10 @@ public class MyRobot extends FrettedInstrument{
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
 
         }
+
+        //clean view
+        final TextView textLog = (TextView) this.activity.findViewById(R.id.textViewLog);
+        textLog.setText("");
 
     }
 
@@ -290,6 +297,8 @@ public class MyRobot extends FrettedInstrument{
             this.sender.send(msg);
             receiver.stopListening();
             buffer.interrupt();
+            this.sender.close();
+            this.receiver.close();
         } catch (IOException ex) {
             Logger.getLogger(MyRobot.class.getName()).log(Level.SEVERE, null, ex);
         }

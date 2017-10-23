@@ -181,6 +181,7 @@ public class LogActivity extends AppCompatActivity {
 
             }
         });
+
         final Button startButton = (Button) findViewById(R.id.buttonStart);
         final Activity thisActivity = this;
         startButton.setOnClickListener(new View.OnClickListener() {
@@ -237,6 +238,7 @@ public class LogActivity extends AppCompatActivity {
 
             }
         });
+
         Button stopButton = (Button) findViewById(R.id.buttonStop);
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -256,11 +258,6 @@ public class LogActivity extends AppCompatActivity {
 
             }
         });
-
-
-
-
-
 
 
     }
